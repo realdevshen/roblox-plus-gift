@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Home,
   User,
@@ -22,6 +22,9 @@ import {
   Send,
   ChevronDown,
   Hexagon,
+  X,
+  Check,
+  Trash2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -54,7 +57,17 @@ const navTop = [
   { label: "Buy Gift Cards", icon: Gift },
 ];
 
-const packages = [
+const topMenu = ["Home", "Charts", "Marketplace", "Create", "Robux"];
+
+type Pack = {
+  robux: number;
+  base: number;
+  bonus: number;
+  price: number;
+  featured?: boolean;
+};
+
+const packages: Pack[] = [
   { robux: 26400, base: 25000, bonus: 1400, price: 239.99, featured: true },
   { robux: 12100, base: 11000, bonus: 1100, price: 119.99 },
   { robux: 5800, base: 4950, bonus: 850, price: 59.99 },
@@ -84,6 +97,12 @@ const faqs = [
   },
 ];
 
+const initialNotifs = [
+  { id: 1, title: "Welcome bonus", body: "Buy any pack to claim a bonus today.", read: false },
+  { id: 2, title: "Friend request", body: "Builderman wants to be your friend.", read: false },
+  { id: 3, title: "Limited drop", body: "New avatar items just released.", read: false },
+];
+
 function RobuxIcon({ className = "size-4" }: { className?: string }) {
   return (
     <Hexagon
@@ -102,7 +121,6 @@ function FallingCoins() {
         const left = (i * 7.3) % 100;
         const delay = (i * 0.7) % 8;
         const duration = 8 + ((i * 1.3) % 6);
-        const size = 14 + ((i * 3) % 18);
         return (
           <div
             key={i}
@@ -113,7 +131,7 @@ function FallingCoins() {
               animation: `fall ${duration}s linear ${delay}s infinite`,
             }}
           >
-            <RobuxIcon className={`size-[${size}px]`} />
+            <RobuxIcon className="size-4" />
           </div>
         );
       })}
@@ -121,8 +139,139 @@ function FallingCoins() {
   );
 }
 
+type Toast = { id: number; title: string; body?: string; tone?: "success" | "info" | "error" };
+
+function useToasts() {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const push = (t: Omit<Toast, "id">) => {
+    const id = Date.now() + Math.random();
+    setToasts((s) => [...s, { id, ...t }]);
+    setTimeout(() => setToasts((s) => s.filter((x) => x.id !== id)), 3200);
+  };
+  return { toasts, push };
+}
+
+function Toaster({ toasts }: { toasts: Toast[] }) {
+  return (
+    <div className="pointer-events-none fixed bottom-4 right-4 z-[60] flex w-[min(92vw,360px)] flex-col gap-2">
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          className="pointer-events-auto animate-float-up rounded-xl border border-border bg-surface/95 p-3 shadow-2xl backdrop-blur"
+        >
+          <div className="flex items-start gap-2.5">
+            <div
+              className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full ${
+                t.tone === "error"
+                  ? "bg-destructive/20 text-destructive"
+                  : "bg-[color:var(--robux-glow)]/20 text-[color:var(--robux-glow)]"
+              }`}
+            >
+              {t.tone === "error" ? <X className="size-3.5" /> : <Check className="size-3.5" />}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">{t.title}</p>
+              {t.body && <p className="mt-0.5 text-xs text-muted-foreground">{t.body}</p>}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CoinBurst({ x, y, onDone }: { x: number; y: number; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 900);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  const coins = Array.from({ length: 12 });
+  return (
+    <div
+      className="pointer-events-none fixed z-[55]"
+      style={{ left: x, top: y }}
+    >
+      {coins.map((_, i) => {
+        const angle = (i / coins.length) * Math.PI * 2;
+        const dx = Math.cos(angle) * (60 + (i % 4) * 12);
+        const dy = Math.sin(angle) * (60 + (i % 4) * 12);
+        return (
+          <span
+            key={i}
+            className="absolute text-[color:var(--robux-glow)]"
+            style={{
+              left: 0,
+              top: 0,
+              animation: "burst 0.9s cubic-bezier(0.22,1,0.36,1) forwards",
+              ["--bx" as string]: `${dx}px`,
+              ["--by" as string]: `${dy}px`,
+            }}
+          >
+            <RobuxIcon className="size-4" />
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function Index() {
-  const [open, setOpen] = useState<number | null>(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [balance, setBalance] = useState<number>(0);
+  const [activeNav, setActiveNav] = useState<string>("Robux");
+  const [activeSide, setActiveSide] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [showSend, setShowSend] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [notifs, setNotifs] = useState(initialNotifs);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [bursts, setBursts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const balanceRef = useRef<HTMLSpanElement | null>(null);
+  const [pulseBalance, setPulseBalance] = useState(false);
+  const { toasts, push } = useToasts();
+
+  // Persist balance
+  useEffect(() => {
+    const saved = Number(localStorage.getItem("robux_balance") || "0");
+    if (!Number.isNaN(saved)) setBalance(saved);
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("robux_balance", String(balance));
+  }, [balance]);
+
+  const unreadCount = notifs.filter((n) => !n.read).length;
+
+  const filteredPackages = useMemo(() => {
+    if (!search.trim()) return packages;
+    const q = search.toLowerCase();
+    return packages.filter(
+      (p) =>
+        p.robux.toString().includes(q) ||
+        p.price.toString().includes(q) ||
+        ("robux".includes(q) && q.length > 1),
+    );
+  }, [search]);
+
+  const triggerBurst = (e: React.MouseEvent) => {
+    const id = Date.now() + Math.random();
+    setBursts((b) => [...b, { id, x: e.clientX, y: e.clientY }]);
+  };
+
+  const animateBalance = () => {
+    setPulseBalance(true);
+    setTimeout(() => setPulseBalance(false), 700);
+  };
+
+  const handleBuy = (p: Pack, e: React.MouseEvent) => {
+    triggerBurst(e);
+    setBalance((b) => b + p.robux);
+    animateBalance();
+    push({
+      title: "Purchase complete",
+      body: `+${p.robux.toLocaleString()} Robux added to your balance`,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -135,40 +284,182 @@ function Index() {
           <span className="hidden sm:inline">ROBLOX</span>
         </a>
         <nav className="ml-2 hidden items-center gap-1 lg:flex">
-          {["Home", "Charts", "Marketplace", "Create", "Robux"].map((l) => (
-            <a
+          {topMenu.map((l) => (
+            <button
               key={l}
-              href="#"
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+              onClick={() => {
+                setActiveNav(l);
+                push({ title: l, body: `Switched to ${l}` });
+              }}
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                activeNav === l
+                  ? "bg-surface text-foreground"
+                  : "text-muted-foreground hover:bg-surface hover:text-foreground"
+              }`}
             >
               {l}
-            </a>
+            </button>
           ))}
         </nav>
         <div className="relative ml-auto hidden max-w-xl flex-1 md:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
-            placeholder="Search"
-            className="h-10 w-full rounded-full border border-border bg-surface pl-9 pr-4 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search packages, price..."
+            className="h-10 w-full rounded-full border border-border bg-surface pl-9 pr-9 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <button className="grid size-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground">
-            <HelpCircle className="size-5" />
-          </button>
-          <button className="relative grid size-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground">
-            <Bell className="size-5" />
-            <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-              34
-            </span>
-          </button>
-          <div className="hidden items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm font-semibold sm:flex">
-            <RobuxIcon className="size-4" />
-            <span>0</span>
+        <div className="flex items-center gap-1.5">
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowHelp((s) => !s);
+                setShowNotifs(false);
+                setShowSettings(false);
+              }}
+              className="grid size-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+            >
+              <HelpCircle className="size-5" />
+            </button>
+            {showHelp && (
+              <Dropdown onClose={() => setShowHelp(false)}>
+                <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Help
+                </p>
+                {["Support center", "Report a bug", "Community guidelines"].map((x) => (
+                  <button
+                    key={x}
+                    onClick={() => {
+                      push({ title: x, body: "Opening..." });
+                      setShowHelp(false);
+                    }}
+                    className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-surface-hover"
+                  >
+                    {x}
+                  </button>
+                ))}
+              </Dropdown>
+            )}
           </div>
-          <button className="grid size-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground">
-            <Settings className="size-5" />
-          </button>
+
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowNotifs((s) => !s);
+                setShowHelp(false);
+                setShowSettings(false);
+              }}
+              className="relative grid size-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+            >
+              <Bell className="size-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            {showNotifs && (
+              <Dropdown onClose={() => setShowNotifs(false)} wide>
+                <div className="flex items-center justify-between px-3 pb-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Notifications
+                  </p>
+                  <button
+                    onClick={() => setNotifs((n) => n.map((x) => ({ ...x, read: true })))}
+                    className="text-xs font-semibold text-[color:var(--robux-glow)] hover:underline"
+                  >
+                    Mark all read
+                  </button>
+                </div>
+                <div className="max-h-72 space-y-1 overflow-auto">
+                  {notifs.length === 0 && (
+                    <p className="px-3 py-6 text-center text-xs text-muted-foreground">
+                      You're all caught up
+                    </p>
+                  )}
+                  {notifs.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`group flex items-start gap-2 rounded-md px-3 py-2 text-left transition-colors hover:bg-surface-hover ${
+                        n.read ? "opacity-60" : ""
+                      }`}
+                    >
+                      <span
+                        className={`mt-1.5 size-2 shrink-0 rounded-full ${
+                          n.read ? "bg-muted-foreground/40" : "bg-[color:var(--robux-glow)]"
+                        }`}
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold">{n.title}</p>
+                        <p className="text-xs text-muted-foreground">{n.body}</p>
+                      </div>
+                      <button
+                        onClick={() =>
+                          setNotifs((s) => s.filter((x) => x.id !== n.id))
+                        }
+                        className="opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </Dropdown>
+            )}
+          </div>
+
+          <div className={`hidden items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm font-semibold transition-transform sm:flex ${pulseBalance ? "scale-110" : ""}`}>
+            <RobuxIcon className="size-4 text-[color:var(--robux-glow)]" />
+            <span ref={balanceRef} className={pulseBalance ? "glow-text" : ""}>
+              {balance.toLocaleString()}
+            </span>
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowSettings((s) => !s);
+                setShowHelp(false);
+                setShowNotifs(false);
+              }}
+              className="grid size-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+            >
+              <Settings className="size-5" />
+            </button>
+            {showSettings && (
+              <Dropdown onClose={() => setShowSettings(false)}>
+                <button
+                  onClick={() => {
+                    setBalance(0);
+                    push({ title: "Balance reset", body: "Robux balance set to 0" });
+                    setShowSettings(false);
+                  }}
+                  className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-surface-hover"
+                >
+                  Reset balance
+                </button>
+                <button
+                  onClick={() => {
+                    setNotifs(initialNotifs);
+                    push({ title: "Notifications restored" });
+                    setShowSettings(false);
+                  }}
+                  className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-surface-hover"
+                >
+                  Restore notifications
+                </button>
+              </Dropdown>
+            )}
+          </div>
         </div>
       </header>
 
@@ -182,22 +473,32 @@ function Index() {
             <span className="text-sm text-muted-foreground">Not logged in</span>
           </div>
           <nav className="space-y-0.5">
-            {navTop.map(({ label, icon: Icon, badge }, i) => (
-              <a
-                key={label}
-                href="#"
-                style={{ animationDelay: `${i * 30}ms` }}
-                className="animate-float-up group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-surface hover:text-foreground"
-              >
-                <Icon className="size-4 transition-transform group-hover:scale-110" />
-                <span className="flex-1">{label}</span>
-                {badge && (
-                  <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-semibold text-muted-foreground group-hover:bg-background">
-                    {badge}
-                  </span>
-                )}
-              </a>
-            ))}
+            {navTop.map(({ label, icon: Icon, badge }, i) => {
+              const isActive = activeSide === label;
+              return (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setActiveSide(label);
+                    push({ title: label, body: `Opened ${label}` });
+                  }}
+                  style={{ animationDelay: `${i * 30}ms` }}
+                  className={`animate-float-up group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-surface text-foreground"
+                      : "text-muted-foreground hover:bg-surface hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="size-4 transition-transform group-hover:scale-110" />
+                  <span className="flex-1 text-left">{label}</span>
+                  {badge && (
+                    <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-semibold text-muted-foreground group-hover:bg-background">
+                      {badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </aside>
 
@@ -207,10 +508,15 @@ function Index() {
 
           {/* Balance / Send button */}
           <div className="relative mx-auto mb-10 flex max-w-3xl justify-end">
-            <div className="flex items-center gap-2 rounded-full border border-border bg-surface/80 p-1 pl-4 backdrop-blur animate-float-up">
-              <RobuxIcon className="size-4" />
-              <span className="text-sm font-semibold">0</span>
-              <button className="flex items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-xs font-bold text-background transition-transform hover:scale-105 active:scale-95">
+            <div className={`flex items-center gap-2 rounded-full border border-border bg-surface/80 p-1 pl-4 backdrop-blur animate-float-up transition-transform ${pulseBalance ? "scale-105" : ""}`}>
+              <RobuxIcon className="size-4 text-[color:var(--robux-glow)]" />
+              <span className={`text-sm font-semibold ${pulseBalance ? "glow-text" : ""}`}>
+                {balance.toLocaleString()}
+              </span>
+              <button
+                onClick={() => setShowSend(true)}
+                className="flex items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-xs font-bold text-background transition-transform hover:scale-105 active:scale-95"
+              >
                 <Send className="size-3.5" /> Send
               </button>
             </div>
@@ -243,11 +549,18 @@ function Index() {
           <section className="relative mx-auto mt-14 max-w-3xl">
             <div className="mb-5 flex items-end justify-between">
               <h2 className="text-xl font-bold">Robux packages</h2>
-              <span className="text-xs text-muted-foreground">Bonus included</span>
+              <span className="text-xs text-muted-foreground">
+                {filteredPackages.length} of {packages.length} packages
+              </span>
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-border bg-surface/40 backdrop-blur">
-              {packages.map((p, i) => (
+              {filteredPackages.length === 0 && (
+                <p className="px-6 py-10 text-center text-sm text-muted-foreground">
+                  No packages match your search.
+                </p>
+              )}
+              {filteredPackages.map((p, i) => (
                 <div
                   key={p.price}
                   style={{ animationDelay: `${i * 60}ms` }}
@@ -272,6 +585,7 @@ function Index() {
                     )}
                   </div>
                   <button
+                    onClick={(e) => handleBuy(p, e)}
                     className={`relative overflow-hidden rounded-full px-5 py-2 text-sm font-bold transition-transform hover:scale-105 active:scale-95 ${
                       p.featured
                         ? "bg-foreground text-background animate-pulse-glow"
@@ -291,11 +605,11 @@ function Index() {
             <h2 className="mb-5 text-xl font-bold">FAQ</h2>
             <div className="overflow-hidden rounded-2xl border border-border bg-surface/40 backdrop-blur">
               {faqs.map((f, i) => {
-                const isOpen = open === i;
+                const isOpen = openFaq === i;
                 return (
                   <div key={f.q} className="border-b border-border/60 last:border-0">
                     <button
-                      onClick={() => setOpen(isOpen ? null : i)}
+                      onClick={() => setOpenFaq(isOpen ? null : i)}
                       className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold transition-colors hover:bg-surface-hover md:px-6"
                     >
                       {f.q}
@@ -321,19 +635,173 @@ function Index() {
             <p className="mt-10 text-xs leading-relaxed text-muted-foreground">
               When you buy Robux you receive only a limited, non-refundable,
               non-transferable, revocable license to use Robux, which has no
-              value in real currency. By selecting the Premium subscription
-              package, (1) you agree that you are over 18 and that you authorize
-              us to charge your account every month until you cancel the
-              subscription, and (2) you represent that you understand and agree
-              to the Terms of Use, which includes an agreement to arbitrate any
-              dispute between you and Roblox, and Privacy Policy.
+              value in real currency.
             </p>
             <p className="mt-6 border-t border-border pt-6 text-xs text-muted-foreground">
-              ©2026 Roblox-style demo. Built with Lovable. Roblox, the Roblox
-              logo and Powering Imagination are trademarks of Roblox Corporation.
+              ©2026 Roblox-style demo. Built with Lovable.
             </p>
           </section>
         </main>
+      </div>
+
+      {showSend && (
+        <SendDialog
+          balance={balance}
+          onClose={() => setShowSend(false)}
+          onSend={(to, amount) => {
+            setBalance((b) => b - amount);
+            animateBalance();
+            push({
+              title: "Robux sent",
+              body: `${amount.toLocaleString()} Robux sent to ${to}`,
+            });
+            setShowSend(false);
+          }}
+          onError={(msg) => push({ title: "Cannot send", body: msg, tone: "error" })}
+        />
+      )}
+
+      {bursts.map((b) => (
+        <CoinBurst
+          key={b.id}
+          x={b.x}
+          y={b.y}
+          onDone={() => setBursts((s) => s.filter((x) => x.id !== b.id))}
+        />
+      ))}
+
+      <Toaster toasts={toasts} />
+    </div>
+  );
+}
+
+function Dropdown({
+  children,
+  onClose,
+  wide,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  wide?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    setTimeout(() => document.addEventListener("mousedown", handler), 0);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+  return (
+    <div
+      ref={ref}
+      className={`absolute right-0 top-full z-50 mt-2 origin-top-right animate-float-up rounded-xl border border-border bg-surface/95 p-2 shadow-2xl backdrop-blur ${
+        wide ? "w-80" : "w-56"
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SendDialog({
+  balance,
+  onClose,
+  onSend,
+  onError,
+}: {
+  balance: number;
+  onClose: () => void;
+  onSend: (to: string, amount: number) => void;
+  onError: (msg: string) => void;
+}) {
+  const [to, setTo] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const submit = () => {
+    const n = Number(amount);
+    if (!to.trim()) return onError("Enter a recipient username.");
+    if (!n || n <= 0) return onError("Enter a valid amount.");
+    if (n > balance) return onError("Insufficient Robux balance.");
+    onSend(to.trim(), n);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-background/70 px-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md animate-float-up rounded-2xl border border-border bg-surface p-6 shadow-2xl"
+      >
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold">Send Robux</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Available balance:{" "}
+              <span className="font-semibold text-foreground">
+                {balance.toLocaleString()}
+              </span>{" "}
+              Robux
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <label className="mb-3 block">
+          <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+            Recipient username
+          </span>
+          <input
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            placeholder="@username"
+            className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
+          />
+        </label>
+        <label className="mb-2 block">
+          <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+            Amount
+          </span>
+          <div className="relative">
+            <RobuxIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[color:var(--robux-glow)]" />
+            <input
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder="0"
+              inputMode="numeric"
+              className="h-11 w-full rounded-lg border border-border bg-background pl-9 pr-20 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
+            />
+            <button
+              onClick={() => setAmount(String(balance))}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-surface-hover px-2 py-1 text-[10px] font-bold text-muted-foreground hover:text-foreground"
+            >
+              MAX
+            </button>
+          </div>
+        </label>
+        <div className="mb-5 flex flex-wrap gap-2">
+          {[100, 500, 1000, 5000].map((q) => (
+            <button
+              key={q}
+              onClick={() => setAmount(String(q))}
+              className="rounded-full bg-surface-hover px-3 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              +{q.toLocaleString()}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={submit}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3 text-sm font-bold text-background transition-transform hover:scale-[1.02] active:scale-95"
+        >
+          <Send className="size-4" /> Send Robux
+        </button>
       </div>
     </div>
   );
