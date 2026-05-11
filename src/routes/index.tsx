@@ -921,7 +921,8 @@ function SendDialog({
           </div>
           <button
             onClick={onClose}
-            className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            disabled={sending}
+            className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-surface-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             <X className="size-4" />
           </button>
