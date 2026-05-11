@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { lookupRobloxUser } from "@/lib/roblox.functions";
 import {
   Home,
   User,
@@ -25,6 +27,8 @@ import {
   X,
   Check,
   Trash2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -653,7 +657,7 @@ function Index() {
             animateBalance();
             push({
               title: "Robux sent",
-              body: `${amount.toLocaleString()} Robux sent to ${to}`,
+              body: `${amount.toLocaleString()} Robux sent to @${to}`,
             });
             setShowSend(false);
           }}
@@ -695,7 +699,7 @@ function Dropdown({
   return (
     <div
       ref={ref}
-      className={`absolute right-0 top-full z-50 mt-2 origin-top-right animate-float-up rounded-xl border border-border bg-surface/95 p-2 shadow-2xl backdrop-blur ${
+      className={`absolute right-0 top-full z-50 mt-2 origin-top-right animate-slide-down rounded-xl border border-border bg-surface/95 p-2 shadow-2xl backdrop-blur ${
         wide ? "w-80" : "w-56"
       }`}
     >
@@ -703,6 +707,13 @@ function Dropdown({
     </div>
   );
 }
+
+type LookupState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "found"; id: number; name: string; displayName: string; avatarUrl: string | null }
+  | { status: "not_found" }
+  | { status: "error"; message: string };
 
 function SendDialog({
   balance,
@@ -717,23 +728,60 @@ function SendDialog({
 }) {
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
+  const [lookup, setLookup] = useState<LookupState>({ status: "idle" });
+  const lookupFn = useServerFn(lookupRobloxUser);
+  const reqId = useRef(0);
+
+  // Debounced Roblox username lookup
+  useEffect(() => {
+    const trimmed = to.trim().replace(/^@/, "");
+    if (!trimmed) {
+      setLookup({ status: "idle" });
+      return;
+    }
+    setLookup({ status: "loading" });
+    const myReq = ++reqId.current;
+    const t = setTimeout(async () => {
+      try {
+        const res = await lookupFn({ data: { username: trimmed } });
+        if (myReq !== reqId.current) return;
+        if (res.found) {
+          setLookup({
+            status: "found",
+            id: res.id,
+            name: res.name,
+            displayName: res.displayName,
+            avatarUrl: res.avatarUrl,
+          });
+        } else {
+          setLookup({ status: "not_found" });
+        }
+      } catch {
+        if (myReq !== reqId.current) return;
+        setLookup({ status: "error", message: "Lookup failed" });
+      }
+    }, 450);
+    return () => clearTimeout(t);
+  }, [to, lookupFn]);
 
   const submit = () => {
     const n = Number(amount);
-    if (!to.trim()) return onError("Enter a recipient username.");
+    if (lookup.status !== "found") return onError("Enter a valid Roblox username.");
     if (!n || n <= 0) return onError("Enter a valid amount.");
     if (n > balance) return onError("Insufficient Robux balance.");
-    onSend(to.trim(), n);
+    onSend(lookup.name, n);
   };
+
+  const canSend = lookup.status === "found" && Number(amount) > 0 && Number(amount) <= balance;
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-background/70 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 grid place-items-center bg-background/70 px-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md animate-float-up rounded-2xl border border-border bg-surface p-6 shadow-2xl"
+        className="w-full max-w-md animate-scale-in rounded-2xl border border-border bg-surface p-6 shadow-2xl"
       >
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
@@ -753,17 +801,83 @@ function SendDialog({
             <X className="size-4" />
           </button>
         </div>
-        <label className="mb-3 block">
+        <label className="mb-2 block">
           <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-            Recipient username
+            Recipient Roblox username
           </span>
-          <input
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            placeholder="@username"
-            className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
-          />
+          <div className="relative">
+            <input
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              placeholder="@username"
+              autoComplete="off"
+              spellCheck={false}
+              className={`h-11 w-full rounded-lg border bg-background px-3 pr-10 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)] ${
+                lookup.status === "not_found" || lookup.status === "error"
+                  ? "border-destructive/60"
+                  : lookup.status === "found"
+                  ? "border-[color:var(--robux-glow)]/60"
+                  : "border-border"
+              }`}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {lookup.status === "loading" && (
+                <Loader2 className="size-4 animate-spin text-muted-foreground" />
+              )}
+              {lookup.status === "found" && (
+                <Check className="size-4 text-[color:var(--robux-glow)]" />
+              )}
+              {(lookup.status === "not_found" || lookup.status === "error") && (
+                <AlertCircle className="size-4 text-destructive" />
+              )}
+            </div>
+          </div>
         </label>
+
+        {/* Lookup result */}
+        <div className="mb-4 min-h-[58px]">
+          {lookup.status === "found" && (
+            <div className="animate-scale-in flex items-center gap-3 rounded-lg border border-[color:var(--robux-glow)]/30 bg-[color:var(--robux-glow)]/5 p-2.5">
+              {lookup.avatarUrl ? (
+                <img
+                  src={lookup.avatarUrl}
+                  alt={lookup.name}
+                  className="size-10 rounded-full bg-surface-hover object-cover"
+                />
+              ) : (
+                <div className="grid size-10 place-items-center rounded-full bg-surface-hover">
+                  <User className="size-5 text-muted-foreground" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{lookup.displayName}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  @{lookup.name} · ID {lookup.id}
+                </p>
+              </div>
+              <Check className="size-4 shrink-0 text-[color:var(--robux-glow)]" />
+            </div>
+          )}
+          {lookup.status === "not_found" && (
+            <p className="animate-fade-in flex items-center gap-2 px-1 text-xs text-destructive">
+              <AlertCircle className="size-3.5" />
+              No Roblox user found with that username.
+            </p>
+          )}
+          {lookup.status === "error" && (
+            <p className="animate-fade-in flex items-center gap-2 px-1 text-xs text-destructive">
+              <AlertCircle className="size-3.5" />
+              {lookup.message}
+            </p>
+          )}
+          {lookup.status === "loading" && (
+            <p className="animate-fade-in flex items-center gap-2 px-1 text-xs text-muted-foreground">
+              <Loader2 className="size-3.5 animate-spin" />
+              Searching Roblox...
+            </p>
+          )}
+        </div>
+
         <label className="mb-2 block">
           <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
             Amount
@@ -798,7 +912,8 @@ function SendDialog({
         </div>
         <button
           onClick={submit}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3 text-sm font-bold text-background transition-transform hover:scale-[1.02] active:scale-95"
+          disabled={!canSend}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3 text-sm font-bold text-background transition-all hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
         >
           <Send className="size-4" /> Send Robux
         </button>

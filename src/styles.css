@@ -67,11 +67,23 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
+  * {
+    border-color: var(--color-border);
+    transition-property: color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    transition-duration: 220ms;
+  }
+  html { scroll-behavior: smooth; }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }
 
@@ -111,10 +123,25 @@
   0% { transform: translate(0, 0) scale(0.6); opacity: 1; }
   100% { transform: translate(var(--bx), var(--by)) scale(1); opacity: 0; }
 }
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
-.animate-float-up { animation: float-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-float-up { animation: float-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
 .animate-pulse-glow { animation: pulse-glow 2.4s ease-in-out infinite; }
+.animate-scale-in { animation: scale-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in { animation: fade-in 0.28s ease-out both; }
+.animate-slide-down { animation: slide-down 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-shimmer {
   background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.08), transparent);
   background-size: 200% 100%;
@@ -122,10 +149,12 @@
 }
 
 .row-hover {
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s, box-shadow 0.3s;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.35s, box-shadow 0.35s;
 }
 .row-hover:hover {
   transform: translateX(6px);
   background-color: var(--color-surface-hover);
   box-shadow: inset 4px 0 0 0 var(--robux-glow);
 }
+
+button, a { transition-duration: 200ms; }
