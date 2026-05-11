@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { lookupRobloxUser } from "@/lib/roblox.functions";
 import {
   Home,
   User,
@@ -25,6 +27,8 @@ import {
   X,
   Check,
   Trash2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
