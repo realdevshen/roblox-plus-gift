@@ -231,6 +231,7 @@ function Index() {
   const [notifs, setNotifs] = useState(initialNotifs);
   const [showNotifs, setShowNotifs] = useState(false);
   const [bursts, setBursts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [pendingBuy, setPendingBuy] = useState<{ pack: Pack; x: number; y: number } | null>(null);
   const balanceRef = useRef<HTMLSpanElement | null>(null);
   const [pulseBalance, setPulseBalance] = useState(false);
   const { toasts, push } = useToasts();
