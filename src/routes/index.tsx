@@ -847,6 +847,7 @@ function SendDialog({
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
   const [lookup, setLookup] = useState<LookupState>({ status: "idle" });
+  const [sending, setSending] = useState(false);
   const lookupFn = useServerFn(lookupRobloxUser);
   const reqId = useRef(0);
 
