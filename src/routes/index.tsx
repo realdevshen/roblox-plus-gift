@@ -699,7 +699,7 @@ function Dropdown({
   return (
     <div
       ref={ref}
-      className={`absolute right-0 top-full z-50 mt-2 origin-top-right animate-float-up rounded-xl border border-border bg-surface/95 p-2 shadow-2xl backdrop-blur ${
+      className={`absolute right-0 top-full z-50 mt-2 origin-top-right animate-slide-down rounded-xl border border-border bg-surface/95 p-2 shadow-2xl backdrop-blur ${
         wide ? "w-80" : "w-56"
       }`}
     >
