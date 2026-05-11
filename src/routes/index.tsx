@@ -674,6 +674,14 @@ function Index() {
         />
       )}
 
+      {pendingBuy && (
+        <BuyConfirmDialog
+          pack={pendingBuy.pack}
+          onCancel={() => setPendingBuy(null)}
+          onConfirm={confirmBuy}
+        />
+      )}
+
       {bursts.map((b) => (
         <CoinBurst
           key={b.id}
