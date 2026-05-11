@@ -734,20 +734,29 @@ function BuyConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const [processing, setProcessing] = useState(false);
+
+  const handleConfirm = () => {
+    if (processing) return;
+    setProcessing(true);
+    setTimeout(() => onConfirm(), 1200);
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (processing) return;
       if (e.key === "Escape") onCancel();
-      if (e.key === "Enter") onConfirm();
+      if (e.key === "Enter") handleConfirm();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel, onConfirm]);
+  });
 
   const total = pack.base + pack.bonus;
   return (
     <div
       className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-fade-in"
-      onClick={onCancel}
+      onClick={() => !processing && onCancel()}
     >
       <div
         className="w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-background shadow-2xl animate-scale-in"
@@ -757,7 +766,8 @@ function BuyConfirmDialog({
           <h3 className="text-lg font-bold">Confirm purchase</h3>
           <button
             onClick={onCancel}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+            disabled={processing}
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Cancel"
           >
             <X className="size-4" />
@@ -765,7 +775,9 @@ function BuyConfirmDialog({
         </div>
         <div className="space-y-4 px-5 py-5">
           <p className="text-sm text-muted-foreground">
-            You are about to purchase the following Robux pack:
+            {processing
+              ? "Processing your purchase..."
+              : "You are about to purchase the following Robux pack:"}
           </p>
           <div className="flex items-center justify-between rounded-xl border border-border bg-surface/60 px-4 py-3">
             <div className="flex items-center gap-2">
@@ -789,15 +801,24 @@ function BuyConfirmDialog({
         <div className="flex gap-2 border-t border-border bg-surface/30 px-5 py-4">
           <button
             onClick={onCancel}
-            className="flex-1 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-hover"
+            disabled={processing}
+            className="flex-1 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
             Cancel
           </button>
           <button
-            onClick={onConfirm}
-            className="flex-1 rounded-full bg-foreground px-4 py-2 text-sm font-bold text-background transition-transform hover:scale-[1.02] active:scale-95"
+            onClick={handleConfirm}
+            disabled={processing}
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-bold text-background transition-transform hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
           >
-            Confirm ${pack.price}
+            {processing ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>Confirm ${pack.price}</>
+            )}
           </button>
         </div>
       </div>
