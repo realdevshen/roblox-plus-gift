@@ -884,14 +884,20 @@ function SendDialog({
   }, [to, lookupFn]);
 
   const submit = () => {
+    if (sending) return;
     const n = Number(amount);
     if (lookup.status !== "found") return onError("Enter a valid Roblox username.");
     if (!n || n <= 0) return onError("Enter a valid amount.");
     if (n > balance) return onError("Insufficient Robux balance.");
-    onSend(lookup.name, n);
+    setSending(true);
+    setTimeout(() => onSend(lookup.name, n), 1200);
   };
 
-  const canSend = lookup.status === "found" && Number(amount) > 0 && Number(amount) <= balance;
+  const canSend =
+    !sending &&
+    lookup.status === "found" &&
+    Number(amount) > 0 &&
+    Number(amount) <= balance;
 
   return (
     <div
