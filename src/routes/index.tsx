@@ -1038,9 +1038,18 @@ function SendDialog({
         <button
           onClick={submit}
           disabled={!canSend}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3 text-sm font-bold text-background transition-all hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3 text-sm font-bold text-background transition-all hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
         >
-          <Send className="size-4" /> Send Robux
+          {sending ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Sending Robux...
+            </>
+          ) : (
+            <>
+              <Send className="size-4" /> Send Robux
+            </>
+          )}
         </button>
       </div>
     </div>
