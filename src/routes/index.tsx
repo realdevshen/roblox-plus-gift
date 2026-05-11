@@ -269,13 +269,21 @@ function Index() {
   };
 
   const handleBuy = (p: Pack, e: React.MouseEvent) => {
-    triggerBurst(e);
-    setBalance((b) => b + p.robux);
+    setPendingBuy({ pack: p, x: e.clientX, y: e.clientY });
+  };
+
+  const confirmBuy = () => {
+    if (!pendingBuy) return;
+    const { pack, x, y } = pendingBuy;
+    const id = Date.now() + Math.random();
+    setBursts((b) => [...b, { id, x, y }]);
+    setBalance((b) => b + pack.robux);
     animateBalance();
     push({
       title: "Purchase complete",
-      body: `+${p.robux.toLocaleString()} Robux added to your balance`,
+      body: `+${pack.robux.toLocaleString()} Robux added to your balance`,
     });
+    setPendingBuy(null);
   };
 
   return (
