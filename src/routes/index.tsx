@@ -231,6 +231,7 @@ function Index() {
   const [notifs, setNotifs] = useState(initialNotifs);
   const [showNotifs, setShowNotifs] = useState(false);
   const [bursts, setBursts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [pendingBuy, setPendingBuy] = useState<{ pack: Pack; x: number; y: number } | null>(null);
   const balanceRef = useRef<HTMLSpanElement | null>(null);
   const [pulseBalance, setPulseBalance] = useState(false);
   const { toasts, push } = useToasts();
@@ -268,13 +269,21 @@ function Index() {
   };
 
   const handleBuy = (p: Pack, e: React.MouseEvent) => {
-    triggerBurst(e);
-    setBalance((b) => b + p.robux);
+    setPendingBuy({ pack: p, x: e.clientX, y: e.clientY });
+  };
+
+  const confirmBuy = () => {
+    if (!pendingBuy) return;
+    const { pack, x, y } = pendingBuy;
+    const id = Date.now() + Math.random();
+    setBursts((b) => [...b, { id, x, y }]);
+    setBalance((b) => b + pack.robux);
     animateBalance();
     push({
       title: "Purchase complete",
-      body: `+${p.robux.toLocaleString()} Robux added to your balance`,
+      body: `+${pack.robux.toLocaleString()} Robux added to your balance`,
     });
+    setPendingBuy(null);
   };
 
   return (
@@ -665,6 +674,14 @@ function Index() {
         />
       )}
 
+      {pendingBuy && (
+        <BuyConfirmDialog
+          pack={pendingBuy.pack}
+          onCancel={() => setPendingBuy(null)}
+          onConfirm={confirmBuy}
+        />
+      )}
+
       {bursts.map((b) => (
         <CoinBurst
           key={b.id}
@@ -704,6 +721,86 @@ function Dropdown({
       }`}
     >
       {children}
+    </div>
+  );
+}
+
+function BuyConfirmDialog({
+  pack,
+  onCancel,
+  onConfirm,
+}: {
+  pack: Pack;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+      if (e.key === "Enter") onConfirm();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel, onConfirm]);
+
+  const total = pack.base + pack.bonus;
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-fade-in"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-background shadow-2xl animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h3 className="text-lg font-bold">Confirm purchase</h3>
+          <button
+            onClick={onCancel}
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+            aria-label="Cancel"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="space-y-4 px-5 py-5">
+          <p className="text-sm text-muted-foreground">
+            You are about to purchase the following Robux pack:
+          </p>
+          <div className="flex items-center justify-between rounded-xl border border-border bg-surface/60 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <RobuxIcon className="size-5 text-[color:var(--robux-glow)]" />
+              <div>
+                <div className="text-base font-bold">
+                  {total.toLocaleString()} Robux
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {pack.base.toLocaleString()} + {pack.bonus.toLocaleString()} bonus
+                </div>
+              </div>
+            </div>
+            <div className="text-lg font-black">${pack.price}</div>
+          </div>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            By continuing you agree that Robux are non-refundable and have no real
+            currency value.
+          </p>
+        </div>
+        <div className="flex gap-2 border-t border-border bg-surface/30 px-5 py-4">
+          <button
+            onClick={onCancel}
+            className="flex-1 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-hover"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 rounded-full bg-foreground px-4 py-2 text-sm font-bold text-background transition-transform hover:scale-[1.02] active:scale-95"
+          >
+            Confirm ${pack.price}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
