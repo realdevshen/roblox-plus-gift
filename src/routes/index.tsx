@@ -657,7 +657,7 @@ function Index() {
             animateBalance();
             push({
               title: "Robux sent",
-              body: `${amount.toLocaleString()} Robux sent to ${to}`,
+              body: `${amount.toLocaleString()} Robux sent to @${to}`,
             });
             setShowSend(false);
           }}
