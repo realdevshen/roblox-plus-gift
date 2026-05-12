@@ -514,6 +514,13 @@ function Index() {
                 >
                   Restore notifications
                 </button>
+                <div className="my-1 h-px bg-border" />
+                <button
+                  onClick={signOut}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-destructive hover:bg-surface-hover"
+                >
+                  <LogOut className="size-4" /> Sign out
+                </button>
               </Dropdown>
             )}
           </div>
