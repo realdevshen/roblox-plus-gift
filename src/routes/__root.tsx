@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "XenoVerse | Robux Gift" },
+      { name: "description", content: "XenoVerse — Roblox Plus+ Gift Websites." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "XenoVerse | Robux Gift" },
+      { property: "og:description", content: "XenoVerse — Roblox Plus+ Gift Websites." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "XenoVerse | Robux Gift" },
+      { name: "twitter:description", content: "XenoVerse — Roblox Plus+ Gift Websites." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/0508b30d-fb4d-4a94-a5bb-bbb41cd128c8" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/0508b30d-fb4d-4a94-a5bb-bbb41cd128c8" },
     ],
     links: [
       {
