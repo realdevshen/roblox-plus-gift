@@ -223,6 +223,31 @@ function CoinBurst({ x, y, onDone }: { x: number; y: number; onDone: () => void 
 }
 
 function Index() {
+  const navigate = useNavigate();
+  const verifyToken = useServerFn(loginWithToken);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const t = getToken();
+    if (!t) {
+      navigate({ to: "/login" });
+      return;
+    }
+    verifyToken({ data: { token: t, deviceId: getDeviceId() } })
+      .then((res) => {
+        if (!res.ok) {
+          clearToken();
+          navigate({ to: "/login" });
+        } else {
+          setAuthChecked(true);
+        }
+      })
+      .catch(() => {
+        clearToken();
+        navigate({ to: "/login" });
+      });
+  }, [navigate, verifyToken]);
+
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [balance, setBalance] = useState<number>(0);
   const [activeNav, setActiveNav] = useState<string>("Robux");
@@ -238,6 +263,11 @@ function Index() {
   const balanceRef = useRef<HTMLSpanElement | null>(null);
   const [pulseBalance, setPulseBalance] = useState(false);
   const { toasts, push } = useToasts();
+
+  const signOut = () => {
+    clearToken();
+    navigate({ to: "/login" });
+  };
 
   // Persist balance
   useEffect(() => {
