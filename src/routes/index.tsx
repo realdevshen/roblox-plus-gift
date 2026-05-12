@@ -1,7 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { lookupRobloxUser } from "@/lib/roblox.functions";
+import { loginWithToken } from "@/lib/auth.functions";
+import { getToken, getDeviceId, clearToken } from "@/lib/auth-client";
 import {
   Home,
   User,
@@ -29,6 +31,7 @@ import {
   Trash2,
   Loader2,
   AlertCircle,
+  LogOut,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -220,6 +223,31 @@ function CoinBurst({ x, y, onDone }: { x: number; y: number; onDone: () => void 
 }
 
 function Index() {
+  const navigate = useNavigate();
+  const verifyToken = useServerFn(loginWithToken);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const t = getToken();
+    if (!t) {
+      navigate({ to: "/login" });
+      return;
+    }
+    verifyToken({ data: { token: t, deviceId: getDeviceId() } })
+      .then((res) => {
+        if (!res.ok) {
+          clearToken();
+          navigate({ to: "/login" });
+        } else {
+          setAuthChecked(true);
+        }
+      })
+      .catch(() => {
+        clearToken();
+        navigate({ to: "/login" });
+      });
+  }, [navigate, verifyToken]);
+
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [balance, setBalance] = useState<number>(0);
   const [activeNav, setActiveNav] = useState<string>("Robux");
@@ -235,6 +263,11 @@ function Index() {
   const balanceRef = useRef<HTMLSpanElement | null>(null);
   const [pulseBalance, setPulseBalance] = useState(false);
   const { toasts, push } = useToasts();
+
+  const signOut = () => {
+    clearToken();
+    navigate({ to: "/login" });
+  };
 
   // Persist balance
   useEffect(() => {
@@ -285,6 +318,17 @@ function Index() {
     });
     setPendingBuy(null);
   };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-background text-foreground">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground animate-fade-in">
+          <Loader2 className="size-4 animate-spin" />
+          Verifying access…
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -469,6 +513,13 @@ function Index() {
                   className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-surface-hover"
                 >
                   Restore notifications
+                </button>
+                <div className="my-1 h-px bg-border" />
+                <button
+                  onClick={signOut}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-destructive hover:bg-surface-hover"
+                >
+                  <LogOut className="size-4" /> Sign out
                 </button>
               </Dropdown>
             )}
