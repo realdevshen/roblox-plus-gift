@@ -31,6 +31,7 @@ import {
   Trash2,
   Loader2,
   AlertCircle,
+  LogOut,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
