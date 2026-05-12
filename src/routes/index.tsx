@@ -319,6 +319,17 @@ function Index() {
     setPendingBuy(null);
   };
 
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-background text-foreground">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground animate-fade-in">
+          <Loader2 className="size-4 animate-spin" />
+          Verifying access…
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Topbar */}
