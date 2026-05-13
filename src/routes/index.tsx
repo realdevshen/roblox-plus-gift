@@ -661,9 +661,14 @@ function Index() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-r from-[#1c1c1e] via-[#1c1c1e]/85 to-transparent" />
                       <div className="relative flex items-center gap-3">
-                        <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[oklch(0.55_0.18_25)] to-[oklch(0.4_0.15_320)] text-2xl shadow-lg ring-1 ring-white/10">
-                          🐧
-                        </span>
+                        <img
+                          src={adoptMeImg}
+                          alt="Adopt Me"
+                          loading="lazy"
+                          width={56}
+                          height={56}
+                          className="size-14 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="truncate text-base font-bold text-white">
                             [EVENT 🎉] Adopt Me!
