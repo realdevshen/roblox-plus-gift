@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { lookupRobloxUser } from "@/lib/roblox.functions";
 import { loginWithToken } from "@/lib/auth.functions";
 import { getToken, getDeviceId, clearToken } from "@/lib/auth-client";
+import adoptMeImg from "@/assets/adopt-me.png";
 import {
   Home,
   User,
