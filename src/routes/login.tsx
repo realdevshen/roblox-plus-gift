@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Hexagon, KeyRound, ShieldCheck, Loader2, AlertCircle } from "lucide-react";
@@ -70,14 +70,19 @@ function LoginPage() {
           <span className="grid size-12 place-items-center rounded-xl bg-foreground text-background shadow-lg">
             <Hexagon className="size-6" strokeWidth={3} />
           </span>
-          <h1 className="text-2xl font-black tracking-tight">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">Sign in to continue</p>
+          <h1 className="text-2xl font-black tracking-tight">Xeno Verse | Login</h1>
+          <p className="text-sm text-muted-foreground">Welcome Back To XenoVerse</p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface/60 p-1 mb-4 grid grid-cols-2 gap-1">
+        <div className="relative rounded-2xl border border-border bg-surface/60 p-1 mb-4 grid grid-cols-2 gap-1 overflow-hidden">
+          <span
+            aria-hidden
+            className="absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-xl bg-foreground shadow transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ transform: tab === "token" ? "translateX(0%)" : "translateX(100%)" }}
+          />
           {([
-            { k: "token" as Tab, label: "Token Login", Icon: KeyRound },
-            { k: "admin" as Tab, label: "Admin Login", Icon: ShieldCheck },
+            { k: "token" as Tab, label: "Token", Icon: KeyRound },
+            { k: "admin" as Tab, label: "Admin", Icon: ShieldCheck },
           ]).map(({ k, label, Icon }) => (
             <button
               key={k}
@@ -86,10 +91,8 @@ function LoginPage() {
                 setTab(k);
                 setError(null);
               }}
-              className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${
-                tab === k
-                  ? "bg-foreground text-background shadow"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`relative z-10 flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors duration-300 ${
+                tab === k ? "text-background" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Icon className="size-4" />
@@ -100,39 +103,38 @@ function LoginPage() {
 
         <form
           onSubmit={submit}
-          className="rounded-2xl border border-border bg-surface/60 p-6 space-y-4 backdrop-blur animate-fade-in"
+          className="rounded-2xl border border-border bg-surface/60 p-6 space-y-4 backdrop-blur"
         >
-          {tab === "token" ? (
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Access token
-              </label>
-              <input
-                value={tokenInput}
-                onChange={(e) => setTokenInput(e.target.value)}
-                placeholder="Paste your token"
-                autoFocus
-                className="w-full rounded-xl border border-border bg-background px-4 py-3 font-mono text-sm outline-none transition focus:border-foreground/40"
-              />
-              <p className="text-xs text-muted-foreground">
-                Your token is bound to this device on first use.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Admin password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                autoFocus
-                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-foreground/40"
-              />
-            </div>
-          )}
+          <div key={tab} className="animate-slide-down space-y-2">
+            {tab === "token" ? (
+              <>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Access token
+                </label>
+                <input
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  placeholder="Paste your token"
+                  autoFocus
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 font-mono text-sm outline-none transition focus:border-foreground/40"
+                />
+              </>
+            ) : (
+              <>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Admin password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoFocus
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-foreground/40"
+                />
+              </>
+            )}
+          </div>
 
           {error && (
             <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive animate-fade-in">
@@ -149,22 +151,6 @@ function LoginPage() {
             {loading && <Loader2 className="size-4 animate-spin" />}
             {loading ? "Signing in..." : tab === "token" ? "Continue" : "Enter Admin"}
           </button>
-
-          <div className="text-center text-xs text-muted-foreground">
-            {tab === "token" ? (
-              <button
-                type="button"
-                onClick={() => setTab("admin")}
-                className="hover:text-foreground transition"
-              >
-                Are you an admin? Sign in here
-              </button>
-            ) : (
-              <Link to="/login" onClick={() => setTab("token")} className="hover:text-foreground transition">
-                Have a token instead?
-              </Link>
-            )}
-          </div>
         </form>
       </div>
     </div>
