@@ -625,40 +625,67 @@ function Index() {
                 </p>
               )}
               {filteredPackages.map((p, i) => (
-                <div
-                  key={p.price}
-                  style={{ animationDelay: `${i * 60}ms` }}
-                  className="row-hover animate-float-up flex items-center gap-3 border-b border-border/60 px-4 py-4 last:border-0 md:gap-6 md:px-6"
-                >
-                  <div className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1.5">
-                    <div className="flex items-center gap-1.5 text-lg font-bold">
-                      <RobuxIcon className="size-4 text-[color:var(--robux-glow)]" />
-                      {p.robux.toLocaleString()}
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground line-through">
-                      <RobuxIcon className="size-3.5" />
-                      {p.base.toLocaleString()}
-                    </div>
-                    <div className="rounded-full bg-[color:var(--robux-glow)]/15 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--robux-glow)]">
-                      + {p.bonus.toLocaleString()} more
-                    </div>
-                    {p.featured && (
-                      <div className="hidden rounded-full bg-foreground px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-background sm:inline-block">
-                        Best value
+                <div key={p.price} style={{ animationDelay: `${i * 60}ms` }} className="animate-float-up">
+                  {p.featured && (
+                    <div className="relative mx-3 mt-3 overflow-hidden rounded-xl border border-[color:var(--robux-glow)]/30 bg-gradient-to-r from-[oklch(0.32_0.14_300)] via-[oklch(0.28_0.16_265)] to-[oklch(0.34_0.18_25)] p-3 md:mx-4 md:p-4 shadow-[0_8px_32px_-8px_oklch(0.85_0.18_95/0.45)]">
+                      <span className="absolute inset-0 animate-shimmer pointer-events-none" />
+                      <div className="relative flex items-center gap-3">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-foreground/10 backdrop-blur text-xl animate-pulse-glow">
+                          🧠
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-foreground text-background px-2 py-0.5 text-[9px] font-black uppercase tracking-wider">
+                              Game Pack
+                            </span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--robux-glow)]">
+                              Limited
+                            </span>
+                          </div>
+                          <p className="mt-1 truncate text-sm font-black text-foreground">
+                            Steal a Brainrot · Mega Bundle
+                          </p>
+                          <p className="truncate text-[11px] text-foreground/70">
+                            Exclusive in-game perks with this pack
+                          </p>
+                        </div>
+                        <span className="hidden sm:inline-block rounded-full bg-foreground/15 px-2.5 py-1 text-[10px] font-bold text-foreground">
+                          🔥 Hot
+                        </span>
                       </div>
-                    )}
+                    </div>
+                  )}
+                  <div className="row-hover flex items-center gap-3 border-b border-border/60 px-4 py-4 last:border-0 md:gap-6 md:px-6">
+                    <div className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1.5">
+                      <div className="flex items-center gap-1.5 text-lg font-bold">
+                        <RobuxIcon className="size-4 text-[color:var(--robux-glow)]" />
+                        {p.robux.toLocaleString()}
+                      </div>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground line-through">
+                        <RobuxIcon className="size-3.5" />
+                        {p.base.toLocaleString()}
+                      </div>
+                      <div className="rounded-full bg-[color:var(--robux-glow)]/15 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--robux-glow)]">
+                        + {p.bonus.toLocaleString()} more
+                      </div>
+                      {p.featured && (
+                        <div className="hidden rounded-full bg-foreground px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-background sm:inline-block">
+                          Best value
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => handleBuy(p, e)}
+                      className={`relative overflow-hidden rounded-full px-5 py-2 text-sm font-bold transition-transform hover:scale-105 active:scale-95 ${
+                        p.featured
+                          ? "bg-foreground text-background animate-pulse-glow"
+                          : "bg-surface-hover text-foreground hover:bg-foreground hover:text-background"
+                      }`}
+                    >
+                      <span className="relative z-10">${p.price}</span>
+                      <span className="absolute inset-0 animate-shimmer" />
+                    </button>
                   </div>
-                  <button
-                    onClick={(e) => handleBuy(p, e)}
-                    className={`relative overflow-hidden rounded-full px-5 py-2 text-sm font-bold transition-transform hover:scale-105 active:scale-95 ${
-                      p.featured
-                        ? "bg-foreground text-background animate-pulse-glow"
-                        : "bg-surface-hover text-foreground hover:bg-foreground hover:text-background"
-                    }`}
-                  >
-                    <span className="relative z-10">${p.price}</span>
-                    <span className="absolute inset-0 animate-shimmer" />
-                  </button>
                 </div>
               ))}
             </div>
