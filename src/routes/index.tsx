@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { lookupRobloxUser } from "@/lib/roblox.functions";
 import { loginWithToken } from "@/lib/auth.functions";
 import { getToken, getDeviceId, clearToken } from "@/lib/auth-client";
+import adoptMeImg from "@/assets/adopt-me.png";
 import {
   Home,
   User,
@@ -112,11 +113,31 @@ const initialNotifs = [
 
 function RobuxIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <Hexagon
+    <svg
       className={className}
-      strokeWidth={2.5}
-      style={{ transform: "rotate(30deg)" }}
-    />
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="robux-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="55%" stopColor="#e7e9ec" />
+          <stop offset="100%" stopColor="#a8acb3" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M12 1.6 21.4 7v10L12 22.4 2.6 17V7L12 1.6Z"
+        fill="url(#robux-grad)"
+        stroke="#9aa0a6"
+        strokeWidth="0.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 7.6h4.6c1.9 0 3 1 3 2.6 0 1.2-.7 2-1.7 2.3l2 3.9h-2.4l-1.7-3.6h-1.6V16.4H9V7.6Zm2.2 1.8v2.5h2.1c.9 0 1.4-.4 1.4-1.2 0-.8-.5-1.3-1.4-1.3h-2.1Z"
+        fill="#1f2329"
+      />
+    </svg>
   );
 }
 
@@ -530,12 +551,15 @@ function Index() {
       <div className="flex">
         {/* Sidebar */}
         <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 overflow-y-auto border-r border-border bg-background/60 p-3 lg:block">
-          <div className="mb-3 flex items-center gap-2 rounded-lg p-2">
+          <button
+            onClick={() => navigate({ to: "/login" })}
+            className="mb-3 flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-surface"
+          >
             <div className="grid size-8 place-items-center rounded-full bg-surface text-muted-foreground">
               <HelpCircle className="size-4" />
             </div>
-            <span className="text-sm text-muted-foreground">Not logged in</span>
-          </div>
+            <span className="text-sm text-muted-foreground hover:text-foreground">Not logged in · Sign in</span>
+          </button>
           <nav className="space-y-0.5">
             {navTop.map(({ label, icon: Icon, badge }, i) => {
               const isActive = activeSide === label;
@@ -638,9 +662,14 @@ function Index() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-r from-[#1c1c1e] via-[#1c1c1e]/85 to-transparent" />
                       <div className="relative flex items-center gap-3">
-                        <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[oklch(0.55_0.18_25)] to-[oklch(0.4_0.15_320)] text-2xl shadow-lg ring-1 ring-white/10">
-                          🐧
-                        </span>
+                        <img
+                          src={adoptMeImg}
+                          alt="Adopt Me"
+                          loading="lazy"
+                          width={56}
+                          height={56}
+                          className="size-14 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="truncate text-base font-bold text-white">
                             [EVENT 🎉] Adopt Me!
