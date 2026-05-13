@@ -550,12 +550,15 @@ function Index() {
       <div className="flex">
         {/* Sidebar */}
         <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 overflow-y-auto border-r border-border bg-background/60 p-3 lg:block">
-          <div className="mb-3 flex items-center gap-2 rounded-lg p-2">
+          <button
+            onClick={() => navigate({ to: "/login" })}
+            className="mb-3 flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-surface"
+          >
             <div className="grid size-8 place-items-center rounded-full bg-surface text-muted-foreground">
               <HelpCircle className="size-4" />
             </div>
-            <span className="text-sm text-muted-foreground">Not logged in</span>
-          </div>
+            <span className="text-sm text-muted-foreground hover:text-foreground">Not logged in · Sign in</span>
+          </button>
           <nav className="space-y-0.5">
             {navTop.map(({ label, icon: Icon, badge }, i) => {
               const isActive = activeSide === label;
