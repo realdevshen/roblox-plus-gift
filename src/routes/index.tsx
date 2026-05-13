@@ -627,31 +627,28 @@ function Index() {
               {filteredPackages.map((p, i) => (
                 <div key={p.price} style={{ animationDelay: `${i * 60}ms` }} className="animate-float-up">
                   {p.featured && (
-                    <div className="relative mx-3 mt-3 overflow-hidden rounded-xl border border-[color:var(--robux-glow)]/30 bg-gradient-to-r from-[oklch(0.32_0.14_300)] via-[oklch(0.28_0.16_265)] to-[oklch(0.34_0.18_25)] p-3 md:mx-4 md:p-4 shadow-[0_8px_32px_-8px_oklch(0.85_0.18_95/0.45)]">
-                      <span className="absolute inset-0 animate-shimmer pointer-events-none" />
+                    <div className="relative mx-3 mt-3 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1c1e] p-3 md:mx-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6)]">
+                      <div
+                        className="absolute inset-0 opacity-60"
+                        style={{
+                          backgroundImage:
+                            "radial-gradient(circle at 30% 40%, oklch(0.95 0 0) 0 8%, transparent 9%), radial-gradient(circle at 70% 60%, oklch(0.2 0 0) 0 14%, transparent 15%), linear-gradient(135deg, oklch(0.45 0.08 150), oklch(0.25 0.05 200))",
+                          filter: "blur(14px)",
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1c1c1e] via-[#1c1c1e]/85 to-transparent" />
                       <div className="relative flex items-center gap-3">
-                        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-foreground/10 backdrop-blur text-xl animate-pulse-glow">
-                          🧠
+                        <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[oklch(0.55_0.18_25)] to-[oklch(0.4_0.15_320)] text-2xl shadow-lg ring-1 ring-white/10">
+                          🐧
                         </span>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="rounded-full bg-foreground text-background px-2 py-0.5 text-[9px] font-black uppercase tracking-wider">
-                              Game Pack
-                            </span>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--robux-glow)]">
-                              Limited
-                            </span>
-                          </div>
-                          <p className="mt-1 truncate text-sm font-black text-foreground">
-                            Steal a Brainrot · Mega Bundle
+                          <p className="truncate text-base font-bold text-white">
+                            [EVENT 🎉] Adopt Me!
                           </p>
-                          <p className="truncate text-[11px] text-foreground/70">
-                            Exclusive in-game perks with this pack
+                          <p className="truncate text-sm text-white/60">
+                            Legendary Pet Drop
                           </p>
                         </div>
-                        <span className="hidden sm:inline-block rounded-full bg-foreground/15 px-2.5 py-1 text-[10px] font-bold text-foreground">
-                          🔥 Hot
-                        </span>
                       </div>
                     </div>
                   )}
