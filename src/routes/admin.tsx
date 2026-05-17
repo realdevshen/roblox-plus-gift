@@ -148,6 +148,22 @@ function AdminPage() {
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  const onSavePoints = async (id: string) => {
+    if (!password) return;
+    const raw = pointsDraft[id];
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) return;
+    setBusyId(id);
+    try {
+      await setPoints({ data: { password, id, points: Math.floor(n) } });
+      await refresh(password);
+      setSavedId(id);
+      setTimeout(() => setSavedId(null), 1400);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const logout = () => {
     clearAdminPassword();
     navigate({ to: "/login" });
