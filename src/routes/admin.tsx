@@ -58,6 +58,7 @@ function AdminPage() {
   const revoke = useServerFn(adminRevokeToken);
   const remove = useServerFn(adminDeleteToken);
   const unbind = useServerFn(adminUnbindDevice);
+  const setPoints = useServerFn(adminSetPoints);
 
   const [password, setPassword] = useState<string | null>(null);
   const [tokens, setTokens] = useState<TokenRow[]>([]);
@@ -66,6 +67,9 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"token" | "points">("token");
+  const [pointsDraft, setPointsDraft] = useState<Record<string, string>>({});
+  const [savedId, setSavedId] = useState<string | null>(null);
 
   useEffect(() => {
     const p = getAdminPassword();
