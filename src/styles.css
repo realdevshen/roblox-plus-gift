@@ -58,7 +58,7 @@
   --input: oklch(0.3 0.01 260);
   --ring: oklch(0.7 0.01 260);
   --robux: oklch(0.98 0 0);
-  --robux-glow: oklch(0.85 0.18 95);
+  --robux-glow: oklch(0.68 0.17 158);
 }
 
 .dark {
