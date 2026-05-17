@@ -21,6 +21,7 @@ export type Database = {
           expires_at: string | null
           id: string
           last_used_at: string | null
+          points: number
           revoked: boolean
           token: string
         }
@@ -30,6 +31,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           last_used_at?: string | null
+          points?: number
           revoked?: boolean
           token: string
         }
@@ -39,6 +41,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           last_used_at?: string | null
+          points?: number
           revoked?: boolean
           token?: string
         }

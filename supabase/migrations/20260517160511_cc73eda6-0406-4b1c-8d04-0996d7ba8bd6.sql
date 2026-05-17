@@ -1,0 +1,2 @@
+ALTER TABLE public.access_tokens
+ADD COLUMN IF NOT EXISTS points BIGINT NOT NULL DEFAULT 0;
