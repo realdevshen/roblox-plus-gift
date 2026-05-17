@@ -21,6 +21,7 @@ import {
   adminRevokeToken,
   adminDeleteToken,
   adminUnbindDevice,
+  adminSetPoints,
 } from "@/lib/auth.functions";
 import { getAdminPassword, clearAdminPassword } from "@/lib/auth-client";
 
