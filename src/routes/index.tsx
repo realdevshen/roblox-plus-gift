@@ -45,6 +45,9 @@ export const Route = createFileRoute("/")({
         content: "Purchase Robux packages and enjoy bonus Robux on every pack.",
       },
     ],
+    links: [
+      { rel: "preload", as: "image", href: adoptMeImg, fetchpriority: "high" },
+    ],
   }),
 });
 
