@@ -45,6 +45,9 @@ export const Route = createFileRoute("/")({
         content: "Purchase Robux packages and enjoy bonus Robux on every pack.",
       },
     ],
+    links: [
+      { rel: "preload", as: "image", href: adoptMeImg, fetchpriority: "high" },
+    ],
   }),
 });
 
@@ -120,17 +123,18 @@ function RobuxIcon({ className = "size-4" }: { className?: string }) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="robux-grad" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="robux-grad" x1="0.15" y1="0" x2="0.85" y2="1">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="55%" stopColor="#e7e9ec" />
-          <stop offset="100%" stopColor="#a8acb3" />
+          <stop offset="40%" stopColor="#d9dde2" />
+          <stop offset="75%" stopColor="#a5abb3" />
+          <stop offset="100%" stopColor="#6f757d" />
         </linearGradient>
       </defs>
       <path
         d="M12 1.6 21.4 7v10L12 22.4 2.6 17V7L12 1.6Z"
         fill="url(#robux-grad)"
-        stroke="#9aa0a6"
-        strokeWidth="0.6"
+        stroke="#5b6066"
+        strokeWidth="0.7"
         strokeLinejoin="round"
       />
       <path
@@ -651,9 +655,9 @@ function Index() {
               {filteredPackages.map((p, i) => (
                 <div key={p.price} style={{ animationDelay: `${i * 60}ms` }} className="animate-float-up">
                   {p.featured && (
-                    <div className="relative mx-3 mt-3 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1c1e] p-3 md:mx-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6)]">
+                    <div className="group relative mx-3 mt-3 mb-1 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1c1e] p-3 md:mx-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6)] animate-scale-in cursor-pointer transition-all duration-500 hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)]">
                       <div
-                        className="absolute inset-0 opacity-60"
+                        className="absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-80"
                         style={{
                           backgroundImage:
                             "radial-gradient(circle at 30% 40%, oklch(0.95 0 0) 0 8%, transparent 9%), radial-gradient(circle at 70% 60%, oklch(0.2 0 0) 0 14%, transparent 15%), linear-gradient(135deg, oklch(0.45 0.08 150), oklch(0.25 0.05 200))",
@@ -665,16 +669,19 @@ function Index() {
                         <img
                           src={adoptMeImg}
                           alt="Adopt Me"
-                          loading="lazy"
+                          loading="eager"
+                          decoding="async"
+                          // @ts-expect-error fetchpriority is a valid HTML attr
+                          fetchpriority="high"
                           width={56}
                           height={56}
-                          className="size-14 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10"
+                          className="size-12 sm:size-14 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10 transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="truncate text-base font-bold text-white">
+                          <p className="truncate text-sm sm:text-base font-bold text-white">
                             [EVENT 🎉] Adopt Me!
                           </p>
-                          <p className="truncate text-sm text-white/60">
+                          <p className="truncate text-xs sm:text-sm text-white/60">
                             Legendary Pet Drop
                           </p>
                         </div>
