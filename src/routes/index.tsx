@@ -120,17 +120,18 @@ function RobuxIcon({ className = "size-4" }: { className?: string }) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="robux-grad" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="robux-grad" x1="0.15" y1="0" x2="0.85" y2="1">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="55%" stopColor="#e7e9ec" />
-          <stop offset="100%" stopColor="#a8acb3" />
+          <stop offset="40%" stopColor="#d9dde2" />
+          <stop offset="75%" stopColor="#a5abb3" />
+          <stop offset="100%" stopColor="#6f757d" />
         </linearGradient>
       </defs>
       <path
         d="M12 1.6 21.4 7v10L12 22.4 2.6 17V7L12 1.6Z"
         fill="url(#robux-grad)"
-        stroke="#9aa0a6"
-        strokeWidth="0.6"
+        stroke="#5b6066"
+        strokeWidth="0.7"
         strokeLinejoin="round"
       />
       <path
