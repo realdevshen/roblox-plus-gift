@@ -272,6 +272,7 @@ function Index() {
           clearToken();
           navigate({ to: "/login" });
         } else {
+          if (typeof res.points === "number") setBalance(res.points);
           setAuthChecked(true);
         }
       })
