@@ -710,7 +710,7 @@ function Index() {
                         + {p.bonus.toLocaleString()} more
                       </div>
                       {p.featured && (
-                        <div className="hidden rounded-full bg-foreground px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-background sm:inline-block">
+                        <div className="hidden rounded-full bg-[color:var(--robux-glow)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white sm:inline-block">
                           Best value
                         </div>
                       )}
@@ -719,8 +719,8 @@ function Index() {
                       onClick={(e) => handleBuy(p, e)}
                       className={`relative overflow-hidden rounded-full px-5 py-2 text-sm font-bold transition-transform hover:scale-105 active:scale-95 ${
                         p.featured
-                          ? "bg-foreground text-background animate-pulse-glow"
-                          : "bg-surface-hover text-foreground hover:bg-foreground hover:text-background"
+                          ? "bg-[color:var(--robux-glow)] text-white animate-pulse-glow shadow-[0_4px_14px_-2px_var(--robux-glow)]"
+                          : "bg-surface-hover text-foreground hover:bg-[color:var(--robux-glow)] hover:text-white"
                       }`}
                     >
                       <span className="relative z-10">${p.price}</span>
