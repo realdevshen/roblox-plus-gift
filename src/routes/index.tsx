@@ -655,9 +655,9 @@ function Index() {
               {filteredPackages.map((p, i) => (
                 <div key={p.price} style={{ animationDelay: `${i * 60}ms` }} className="animate-float-up">
                   {p.featured && (
-                    <div className="relative mx-3 mt-3 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1c1e] p-3 md:mx-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6)]">
+                    <div className="group relative mx-3 mt-3 mb-1 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1c1e] p-3 md:mx-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6)] animate-scale-in cursor-pointer transition-all duration-500 hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)]">
                       <div
-                        className="absolute inset-0 opacity-60"
+                        className="absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-80"
                         style={{
                           backgroundImage:
                             "radial-gradient(circle at 30% 40%, oklch(0.95 0 0) 0 8%, transparent 9%), radial-gradient(circle at 70% 60%, oklch(0.2 0 0) 0 14%, transparent 15%), linear-gradient(135deg, oklch(0.45 0.08 150), oklch(0.25 0.05 200))",
@@ -669,16 +669,19 @@ function Index() {
                         <img
                           src={adoptMeImg}
                           alt="Adopt Me"
-                          loading="lazy"
+                          loading="eager"
+                          decoding="async"
+                          // @ts-expect-error fetchpriority is a valid HTML attr
+                          fetchpriority="high"
                           width={56}
                           height={56}
-                          className="size-14 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10"
+                          className="size-12 sm:size-14 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10 transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="truncate text-base font-bold text-white">
+                          <p className="truncate text-sm sm:text-base font-bold text-white">
                             [EVENT 🎉] Adopt Me!
                           </p>
-                          <p className="truncate text-sm text-white/60">
+                          <p className="truncate text-xs sm:text-sm text-white/60">
                             Legendary Pet Drop
                           </p>
                         </div>
