@@ -21,6 +21,7 @@ import {
   adminRevokeToken,
   adminDeleteToken,
   adminUnbindDevice,
+  adminSetPoints,
 } from "@/lib/auth.functions";
 import { getAdminPassword, clearAdminPassword } from "@/lib/auth-client";
 
@@ -47,6 +48,7 @@ type TokenRow = {
   device_id: string | null;
   created_at: string;
   last_used_at: string | null;
+  points: number | null;
 };
 
 function AdminPage() {
@@ -56,6 +58,7 @@ function AdminPage() {
   const revoke = useServerFn(adminRevokeToken);
   const remove = useServerFn(adminDeleteToken);
   const unbind = useServerFn(adminUnbindDevice);
+  const setPoints = useServerFn(adminSetPoints);
 
   const [password, setPassword] = useState<string | null>(null);
   const [tokens, setTokens] = useState<TokenRow[]>([]);
@@ -64,6 +67,9 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"token" | "points">("token");
+  const [pointsDraft, setPointsDraft] = useState<Record<string, string>>({});
+  const [savedId, setSavedId] = useState<string | null>(null);
 
   useEffect(() => {
     const p = getAdminPassword();
@@ -142,6 +148,22 @@ function AdminPage() {
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  const onSavePoints = async (id: string) => {
+    if (!password) return;
+    const raw = pointsDraft[id];
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) return;
+    setBusyId(id);
+    try {
+      await setPoints({ data: { password, id, points: Math.floor(n) } });
+      await refresh(password);
+      setSavedId(id);
+      setTimeout(() => setSavedId(null), 1400);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const logout = () => {
     clearAdminPassword();
     navigate({ to: "/login" });
@@ -171,133 +193,227 @@ function AdminPage() {
         </button>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 md:px-6 py-8 space-y-8">
-        {/* Generate */}
-        <section className="rounded-2xl border border-border bg-surface/60 p-6 animate-fade-in">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
-            Generate token
-          </h2>
-          <div className="flex flex-col gap-4 md:flex-row md:items-end">
-            <div className="flex-1">
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">
-                Expires in
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {EXPIRY_LABELS.map((e) => (
-                  <button
-                    key={e.value}
-                    onClick={() => setExpiry(e.value)}
-                    className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
-                      expiry === e.value
-                        ? "bg-foreground text-background shadow"
-                        : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
-                    }`}
-                  >
-                    {e.value === "lifetime" && <InfinityIcon className="inline size-3.5 mr-1" />}
-                    {e.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+      <main className="mx-auto max-w-5xl px-4 md:px-6 py-8 space-y-6">
+        {/* Tabs */}
+        <div className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface/60 p-1">
+          {([
+            { id: "token", label: "Token" },
+            { id: "points", label: "Set Points" },
+          ] as const).map((x) => (
             <button
-              onClick={onCreate}
-              disabled={creating}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-foreground text-background px-5 py-3 text-sm font-bold transition hover:opacity-90 disabled:opacity-40"
+              key={x.id}
+              onClick={() => setTab(x.id)}
+              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                tab === x.id
+                  ? "bg-[color:var(--robux-glow)] text-white shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
-              {creating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-              Generate
+              {x.label}
             </button>
-          </div>
-        </section>
+          ))}
+        </div>
 
-        {/* List */}
-        <section className="rounded-2xl border border-border bg-surface/60 overflow-hidden animate-fade-in">
-          <div className="flex items-center justify-between p-6 pb-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Tokens ({tokens.length})
-            </h2>
-            {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
-          </div>
+        {tab === "token" && (
+          <div className="space-y-8 animate-fade-in">
+            {/* Generate */}
+            <section className="rounded-2xl border border-border bg-surface/60 p-6">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                Generate token
+              </h2>
+              <div className="flex flex-col gap-4 md:flex-row md:items-end">
+                <div className="flex-1">
+                  <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+                    Expires in
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {EXPIRY_LABELS.map((e) => (
+                      <button
+                        key={e.value}
+                        onClick={() => setExpiry(e.value)}
+                        className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+                          expiry === e.value
+                            ? "bg-[color:var(--robux-glow)] text-white shadow"
+                            : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
+                        }`}
+                      >
+                        {e.value === "lifetime" && <InfinityIcon className="inline size-3.5 mr-1" />}
+                        {e.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={onCreate}
+                  disabled={creating}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[color:var(--robux-glow)] text-white px-5 py-3 text-sm font-bold transition hover:opacity-90 disabled:opacity-40"
+                >
+                  {creating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+                  Generate
+                </button>
+              </div>
+            </section>
 
-          {!loading && tokens.length === 0 && (
-            <div className="p-12 text-center text-sm text-muted-foreground">
-              No tokens yet. Generate your first one above.
+            {/* List */}
+            <section className="rounded-2xl border border-border bg-surface/60 overflow-hidden">
+              <div className="flex items-center justify-between p-6 pb-4">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                  Tokens ({tokens.length})
+                </h2>
+                {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+              </div>
+
+              {!loading && tokens.length === 0 && (
+                <div className="p-12 text-center text-sm text-muted-foreground">
+                  No tokens yet. Generate your first one above.
+                </div>
+              )}
+
+              <ul className="divide-y divide-border">
+                {tokens.map((t) => {
+                  const status = tokenStatus(t);
+                  return (
+                    <li key={t.id} className="p-4 md:p-5 hover:bg-surface/40 transition-colors">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <code className="font-mono text-xs md:text-sm break-all">{t.token}</code>
+                            <button
+                              onClick={() => copy(t.id, t.token)}
+                              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-surface transition"
+                            >
+                              {copiedId === t.id ? (
+                                <><Check className="size-3" /> Copied</>
+                              ) : (
+                                <><Copy className="size-3" /> Copy</>
+                              )}
+                            </button>
+                            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${status.tone}`}>
+                              {status.label}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="size-3" />
+                              {t.expires_at
+                                ? `Expires ${new Date(t.expires_at).toLocaleString()}`
+                                : "Lifetime"}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <Smartphone className="size-3" />
+                              {t.device_id ? `Bound: ${t.device_id.slice(0, 8)}…` : "Unbound"}
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-[color:var(--robux-glow)] font-semibold">
+                              R$ {(t.points ?? 0).toLocaleString()}
+                            </span>
+                            {t.last_used_at && (
+                              <span>Last used {new Date(t.last_used_at).toLocaleString()}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {t.device_id && !t.revoked && (
+                            <button
+                              onClick={() => onUnbind(t.id)}
+                              disabled={busyId === t.id}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-surface transition disabled:opacity-40"
+                            >
+                              <Smartphone className="size-3.5" /> Unbind
+                            </button>
+                          )}
+                          {!t.revoked && (
+                            <button
+                              onClick={() => onRevoke(t.id)}
+                              disabled={busyId === t.id}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition disabled:opacity-40"
+                            >
+                              {busyId === t.id ? <Loader2 className="size-3.5 animate-spin" /> : <Ban className="size-3.5" />}
+                              Revoke
+                            </button>
+                          )}
+                          <button
+                            onClick={() => onDelete(t.id)}
+                            disabled={busyId === t.id}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive hover:border-destructive/40 transition disabled:opacity-40"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          </div>
+        )}
+
+        {tab === "points" && (
+          <section className="rounded-2xl border border-border bg-surface/60 overflow-hidden animate-fade-in">
+            <div className="flex items-center justify-between p-6 pb-4">
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                  Set Points
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Assign a Robux balance to each token. Shown to the user on login.
+                </p>
+              </div>
+              {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
             </div>
-          )}
 
-          <ul className="divide-y divide-border">
-            {tokens.map((t) => {
-              const status = tokenStatus(t);
-              return (
-                <li key={t.id} className="p-4 md:p-5 hover:bg-surface/40 transition-colors">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <div className="flex items-center gap-2 flex-wrap">
+            {!loading && tokens.length === 0 && (
+              <div className="p-12 text-center text-sm text-muted-foreground">
+                No tokens yet.
+              </div>
+            )}
+
+            <ul className="divide-y divide-border">
+              {tokens.map((t) => {
+                const current = t.points ?? 0;
+                const draft = pointsDraft[t.id] ?? String(current);
+                const changed = String(current) !== draft;
+                return (
+                  <li key={t.id} className="p-4 md:p-5 hover:bg-surface/40 transition-colors">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="min-w-0 flex-1">
                         <code className="font-mono text-xs md:text-sm break-all">{t.token}</code>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Current: <span className="font-semibold text-[color:var(--robux-glow)]">R$ {current.toLocaleString()}</span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={0}
+                          value={draft}
+                          onChange={(e) =>
+                            setPointsDraft((s) => ({ ...s, [t.id]: e.target.value }))
+                          }
+                          className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
+                          placeholder="0"
+                        />
                         <button
-                          onClick={() => copy(t.id, t.token)}
-                          className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-surface transition"
+                          onClick={() => onSavePoints(t.id)}
+                          disabled={busyId === t.id || !changed}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--robux-glow)] px-3.5 py-2 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-40"
                         >
-                          {copiedId === t.id ? (
-                            <><Check className="size-3" /> Copied</>
+                          {busyId === t.id ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : savedId === t.id ? (
+                            <><Check className="size-3.5" /> Saved</>
                           ) : (
-                            <><Copy className="size-3" /> Copy</>
+                            "Save"
                           )}
                         </button>
-                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${status.tone}`}>
-                          {status.label}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="size-3" />
-                          {t.expires_at
-                            ? `Expires ${new Date(t.expires_at).toLocaleString()}`
-                            : "Lifetime"}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Smartphone className="size-3" />
-                          {t.device_id ? `Bound: ${t.device_id.slice(0, 8)}…` : "Unbound"}
-                        </span>
-                        {t.last_used_at && (
-                          <span>Last used {new Date(t.last_used_at).toLocaleString()}</span>
-                        )}
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {t.device_id && !t.revoked && (
-                        <button
-                          onClick={() => onUnbind(t.id)}
-                          disabled={busyId === t.id}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-surface transition disabled:opacity-40"
-                        >
-                          <Smartphone className="size-3.5" /> Unbind
-                        </button>
-                      )}
-                      {!t.revoked && (
-                        <button
-                          onClick={() => onRevoke(t.id)}
-                          disabled={busyId === t.id}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition disabled:opacity-40"
-                        >
-                          {busyId === t.id ? <Loader2 className="size-3.5 animate-spin" /> : <Ban className="size-3.5" />}
-                          Revoke
-                        </button>
-                      )}
-                      <button
-                        onClick={() => onDelete(t.id)}
-                        disabled={busyId === t.id}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive hover:border-destructive/40 transition disabled:opacity-40"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
       </main>
 
       <ShieldX className="hidden" />

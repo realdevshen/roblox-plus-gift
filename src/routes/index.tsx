@@ -123,23 +123,31 @@ function RobuxIcon({ className = "size-4" }: { className?: string }) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="robux-grad" x1="0.15" y1="0" x2="0.85" y2="1">
+        <linearGradient id="robux-grad" x1="0.2" y1="0.05" x2="0.8" y2="0.95">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="40%" stopColor="#d9dde2" />
-          <stop offset="75%" stopColor="#a5abb3" />
-          <stop offset="100%" stopColor="#6f757d" />
+          <stop offset="35%" stopColor="#eef0f3" />
+          <stop offset="70%" stopColor="#bfc4cb" />
+          <stop offset="100%" stopColor="#7d838b" />
+        </linearGradient>
+        <linearGradient id="robux-shine" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+          <stop offset="60%" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path
         d="M12 1.6 21.4 7v10L12 22.4 2.6 17V7L12 1.6Z"
         fill="url(#robux-grad)"
-        stroke="#5b6066"
-        strokeWidth="0.7"
+        stroke="#4f5358"
+        strokeWidth="0.9"
         strokeLinejoin="round"
       />
       <path
+        d="M12 1.6 21.4 7v10L12 22.4 2.6 17V7L12 1.6Z"
+        fill="url(#robux-shine)"
+      />
+      <path
         d="M9 7.6h4.6c1.9 0 3 1 3 2.6 0 1.2-.7 2-1.7 2.3l2 3.9h-2.4l-1.7-3.6h-1.6V16.4H9V7.6Zm2.2 1.8v2.5h2.1c.9 0 1.4-.4 1.4-1.2 0-.8-.5-1.3-1.4-1.3h-2.1Z"
-        fill="#1f2329"
+        fill="#1a1d22"
       />
     </svg>
   );
@@ -264,6 +272,7 @@ function Index() {
           clearToken();
           navigate({ to: "/login" });
         } else {
+          if (typeof res.points === "number") setBalance(res.points);
           setAuthChecked(true);
         }
       })
@@ -702,7 +711,7 @@ function Index() {
                         + {p.bonus.toLocaleString()} more
                       </div>
                       {p.featured && (
-                        <div className="hidden rounded-full bg-foreground px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-background sm:inline-block">
+                        <div className="hidden rounded-full bg-[color:var(--robux-glow)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white sm:inline-block">
                           Best value
                         </div>
                       )}
@@ -711,8 +720,8 @@ function Index() {
                       onClick={(e) => handleBuy(p, e)}
                       className={`relative overflow-hidden rounded-full px-5 py-2 text-sm font-bold transition-transform hover:scale-105 active:scale-95 ${
                         p.featured
-                          ? "bg-foreground text-background animate-pulse-glow"
-                          : "bg-surface-hover text-foreground hover:bg-foreground hover:text-background"
+                          ? "bg-[color:var(--robux-glow)] text-white animate-pulse-glow shadow-[0_4px_14px_-2px_var(--robux-glow)]"
+                          : "bg-surface-hover text-foreground hover:bg-[color:var(--robux-glow)] hover:text-white"
                       }`}
                     >
                       <span className="relative z-10">${p.price}</span>

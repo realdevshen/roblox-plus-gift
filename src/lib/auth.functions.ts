@@ -60,6 +60,21 @@ export const loginWithToken = createServerFn({ method: "POST" })
     if (!row.device_id) updates.device_id = deviceId;
     await sb.from("access_tokens").update(updates).eq("id", row.id);
 
+    return { ok: true as const, points: Number(row.points ?? 0) };
+  });
+
+export const adminSetPoints = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string; id: string; points: number }) => {
+    if (!Number.isFinite(d.points) || d.points < 0) throw new Error("Invalid points");
+    return d;
+  })
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { error } = await admin()
+      .from("access_tokens")
+      .update({ points: Math.floor(data.points) })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
     return { ok: true as const };
   });
 
