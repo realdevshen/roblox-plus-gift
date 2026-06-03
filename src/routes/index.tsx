@@ -1144,9 +1144,12 @@ function SendDialog({
                   onClick={() => setTo(f.name)}
                   className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-surface-hover"
                 >
-                  <div className="grid size-8 place-items-center rounded-full bg-surface-hover text-xs font-bold text-muted-foreground">
-                    {f.name.charAt(0).toUpperCase()}
-                  </div>
+                  <img
+                    src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(f.name + i)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
+                    alt=""
+                    loading="lazy"
+                    className="size-8 rounded-full bg-surface-hover object-cover"
+                  />
                   <span className="flex-1 truncate text-sm font-medium">
                     {f.name}
                     {f.emoji && <span className="ml-1">{f.emoji}</span>}
