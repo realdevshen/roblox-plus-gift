@@ -1019,6 +1019,37 @@ function SendDialog({
     Number(amount) > 0 &&
     Number(amount) <= balance;
 
+  const friends = useMemo(
+    () => [
+      { name: "ALFE", emoji: "💕" },
+      { name: "OREO", emoji: "💕" },
+      { name: "YUKI", emoji: "❤️" },
+      { name: "Aisaka", emoji: "" },
+      { name: "Vilos", emoji: "" },
+      { name: "BLUE", emoji: "❤️" },
+      { name: "VAMP", emoji: "❤️" },
+      { name: "RHYNE", emoji: "" },
+      { name: "Ilove_Nichole", emoji: "" },
+      { name: "ilove_femboys", emoji: "" },
+      { name: "Xyrieee222", emoji: "" },
+      { name: "YUKI", emoji: "" },
+      { name: "matcha_notlover", emoji: "" },
+      { name: "RAYZA", emoji: "❤️" },
+      { name: "rey", emoji: "" },
+      { name: "FAYE", emoji: "" },
+      { name: "Suhaa", emoji: "" },
+    ],
+    [],
+  );
+
+  const filteredFriends = useMemo(() => {
+    const q = to.trim().replace(/^@/, "").toLowerCase();
+    if (!q) return friends;
+    return friends.filter((f) => f.name.toLowerCase().includes(q));
+  }, [to, friends]);
+
+  const [step, setStep] = useState<"pick" | "amount">("pick");
+
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-background/70 px-4 backdrop-blur-sm animate-fade-in"
@@ -1026,152 +1057,188 @@ function SendDialog({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md animate-scale-in rounded-2xl border border-border bg-surface p-6 shadow-2xl"
+        className="w-full max-w-md animate-scale-in overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
       >
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-bold">Send Robux</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Available balance:{" "}
-              <span className="font-semibold text-foreground">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
+          <h3 className="text-base font-bold">Send Robux</h3>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1">
+              <RobuxIcon className="size-3.5" />
+              <span className="text-xs font-bold tabular-nums">
                 {balance.toLocaleString()}
-              </span>{" "}
-              Robux
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            disabled={sending}
-            className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-surface-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-        <label className="mb-2 block">
-          <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-            Recipient Roblox username
-          </span>
-          <div className="relative">
-            <input
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              placeholder="@username"
-              autoComplete="off"
-              spellCheck={false}
-              className={`h-11 w-full rounded-lg border bg-background px-3 pr-10 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)] ${
-                lookup.status === "not_found" || lookup.status === "error"
-                  ? "border-destructive/60"
-                  : lookup.status === "found"
-                  ? "border-[color:var(--robux-glow)]/60"
-                  : "border-border"
-              }`}
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              {lookup.status === "loading" && (
-                <Loader2 className="size-4 animate-spin text-muted-foreground" />
-              )}
-              {lookup.status === "found" && (
-                <Check className="size-4 text-[color:var(--robux-glow)]" />
-              )}
-              {(lookup.status === "not_found" || lookup.status === "error") && (
-                <AlertCircle className="size-4 text-destructive" />
-              )}
+              </span>
             </div>
+            <button
+              onClick={onClose}
+              disabled={sending}
+              className="grid size-7 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground disabled:opacity-40"
+              aria-label="Close"
+            >
+              <X className="size-4" />
+            </button>
           </div>
-        </label>
+        </div>
 
-        {/* Lookup result */}
-        <div className="mb-4 min-h-[58px]">
-          {lookup.status === "found" && (
-            <div className="animate-scale-in flex items-center gap-3 rounded-lg border border-[color:var(--robux-glow)]/30 bg-[color:var(--robux-glow)]/5 p-2.5">
-              {lookup.avatarUrl ? (
-                <img
-                  src={lookup.avatarUrl}
-                  alt={lookup.name}
-                  className="size-10 rounded-full bg-surface-hover object-cover"
-                />
-              ) : (
-                <div className="grid size-10 place-items-center rounded-full bg-surface-hover">
-                  <User className="size-5 text-muted-foreground" />
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{lookup.displayName}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  @{lookup.name} · ID {lookup.id}
-                </p>
+        {step === "pick" ? (
+          <div className="p-4">
+            <div className="relative mb-3">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                placeholder="Search by username"
+                autoComplete="off"
+                spellCheck={false}
+                className="h-10 w-full rounded-lg border-2 border-[color:var(--robux-glow)] bg-background pl-9 pr-10 text-sm outline-none"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {lookup.status === "loading" && (
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                )}
+                {lookup.status === "found" && (
+                  <Check className="size-4 text-[color:var(--robux-glow)]" />
+                )}
               </div>
-              <Check className="size-4 shrink-0 text-[color:var(--robux-glow)]" />
             </div>
-          )}
-          {lookup.status === "not_found" && (
-            <p className="animate-fade-in flex items-center gap-2 px-1 text-xs text-destructive">
-              <AlertCircle className="size-3.5" />
-              No Roblox user found with that username.
-            </p>
-          )}
-          {lookup.status === "error" && (
-            <p className="animate-fade-in flex items-center gap-2 px-1 text-xs text-destructive">
-              <AlertCircle className="size-3.5" />
-              {lookup.message}
-            </p>
-          )}
-          {lookup.status === "loading" && (
-            <p className="animate-fade-in flex items-center gap-2 px-1 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" />
-              Searching Roblox...
-            </p>
-          )}
-        </div>
 
-        <label className="mb-2 block">
-          <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-            Amount
-          </span>
-          <div className="relative">
-            <RobuxIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[color:var(--robux-glow)]" />
-            <input
-              value={amount}
-              onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="0"
-              inputMode="numeric"
-              className="h-11 w-full rounded-lg border border-border bg-background pl-9 pr-20 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
-            />
+            {lookup.status === "found" && (
+              <button
+                onClick={() => setStep("amount")}
+                className="mb-3 flex w-full animate-scale-in items-center gap-3 rounded-lg border border-[color:var(--robux-glow)]/40 bg-[color:var(--robux-glow)]/5 p-2.5 text-left transition-colors hover:bg-[color:var(--robux-glow)]/10"
+              >
+                {lookup.avatarUrl ? (
+                  <img
+                    src={lookup.avatarUrl}
+                    alt={lookup.name}
+                    className="size-9 rounded-full bg-surface-hover object-cover"
+                  />
+                ) : (
+                  <div className="grid size-9 place-items-center rounded-full bg-surface-hover">
+                    <User className="size-5 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{lookup.displayName}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    @{lookup.name} · ID {lookup.id} · tap to continue
+                  </p>
+                </div>
+                <Check className="size-4 shrink-0 text-[color:var(--robux-glow)]" />
+              </button>
+            )}
+            {lookup.status === "not_found" && to.trim() && (
+              <p className="mb-2 flex items-center gap-2 px-1 text-xs text-destructive">
+                <AlertCircle className="size-3.5" />
+                No Roblox user found.
+              </p>
+            )}
+
+            <p className="mb-2 px-1 text-sm font-semibold">
+              My friends ({friends.length})
+            </p>
+            <div className="max-h-[340px] space-y-0.5 overflow-y-auto pr-1">
+              {filteredFriends.map((f, i) => (
+                <button
+                  key={`${f.name}-${i}`}
+                  onClick={() => setTo(f.name)}
+                  className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-surface-hover"
+                >
+                  <div className="grid size-8 place-items-center rounded-full bg-surface-hover text-xs font-bold text-muted-foreground">
+                    {f.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="flex-1 truncate text-sm font-medium">
+                    {f.name}
+                    {f.emoji && <span className="ml-1">{f.emoji}</span>}
+                  </span>
+                </button>
+              ))}
+              {filteredFriends.length === 0 && (
+                <p className="px-2 py-6 text-center text-xs text-muted-foreground">
+                  No friends match "{to}"
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="p-5">
+            {lookup.status === "found" && (
+              <div className="mb-4 flex items-center gap-3 rounded-lg border border-border bg-background p-2.5">
+                {lookup.avatarUrl ? (
+                  <img
+                    src={lookup.avatarUrl}
+                    alt={lookup.name}
+                    className="size-10 rounded-full bg-surface-hover object-cover"
+                  />
+                ) : (
+                  <div className="grid size-10 place-items-center rounded-full bg-surface-hover">
+                    <User className="size-5 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{lookup.displayName}</p>
+                  <p className="truncate text-xs text-muted-foreground">@{lookup.name}</p>
+                </div>
+                <button
+                  onClick={() => setStep("pick")}
+                  className="text-xs font-semibold text-[color:var(--robux-glow)] hover:underline"
+                >
+                  Change
+                </button>
+              </div>
+            )}
+
+            <label className="mb-2 block">
+              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Amount
+              </span>
+              <div className="relative">
+                <RobuxIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+                <input
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="0"
+                  inputMode="numeric"
+                  autoFocus
+                  className="h-11 w-full rounded-lg border border-border bg-background pl-9 pr-20 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
+                />
+                <button
+                  onClick={() => setAmount(String(balance))}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-surface-hover px-2 py-1 text-[10px] font-bold text-muted-foreground hover:text-foreground"
+                >
+                  MAX
+                </button>
+              </div>
+            </label>
+            <div className="mb-5 flex flex-wrap gap-2">
+              {[100, 500, 1000, 5000].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => setAmount(String(q))}
+                  className="rounded-full bg-surface-hover px-3 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                >
+                  +{q.toLocaleString()}
+                </button>
+              ))}
+            </div>
             <button
-              onClick={() => setAmount(String(balance))}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-surface-hover px-2 py-1 text-[10px] font-bold text-muted-foreground hover:text-foreground"
+              onClick={submit}
+              disabled={!canSend}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--robux-glow)] py-3 text-sm font-bold text-background transition-all hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
             >
-              MAX
+              {sending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Sending Robux...
+                </>
+              ) : (
+                <>
+                  <Send className="size-4" /> Send Robux
+                </>
+              )}
             </button>
           </div>
-        </label>
-        <div className="mb-5 flex flex-wrap gap-2">
-          {[100, 500, 1000, 5000].map((q) => (
-            <button
-              key={q}
-              onClick={() => setAmount(String(q))}
-              className="rounded-full bg-surface-hover px-3 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
-            >
-              +{q.toLocaleString()}
-            </button>
-          ))}
-        </div>
-        <button
-          onClick={submit}
-          disabled={!canSend}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3 text-sm font-bold text-background transition-all hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
-        >
-          {sending ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Sending Robux...
-            </>
-          ) : (
-            <>
-              <Send className="size-4" /> Send Robux
-            </>
-          )}
-        </button>
+        )}
       </div>
     </div>
   );
