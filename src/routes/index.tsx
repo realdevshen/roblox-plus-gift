@@ -720,8 +720,8 @@ function Index() {
                       onClick={(e) => handleBuy(p, e)}
                       className={`relative overflow-hidden rounded-full px-5 py-2 text-sm font-bold transition-transform hover:scale-105 active:scale-95 ${
                         p.featured
-                          ? "bg-[color:var(--robux-glow)] text-white animate-pulse-glow shadow-[0_4px_14px_-2px_var(--robux-glow)]"
-                          : "bg-surface-hover text-foreground hover:bg-[color:var(--robux-glow)] hover:text-white"
+                          ? "bg-gradient-to-b from-white to-zinc-200 text-zinc-900 shadow-[0_4px_14px_-2px_rgba(255,255,255,0.25)] ring-1 ring-white/20"
+                          : "bg-gradient-to-b from-zinc-200 to-zinc-300 text-zinc-900 hover:from-white hover:to-zinc-200"
                       }`}
                     >
                       <span className="relative z-10">${p.price}</span>
@@ -1144,9 +1144,12 @@ function SendDialog({
                   onClick={() => setTo(f.name)}
                   className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-surface-hover"
                 >
-                  <div className="grid size-8 place-items-center rounded-full bg-surface-hover text-xs font-bold text-muted-foreground">
-                    {f.name.charAt(0).toUpperCase()}
-                  </div>
+                  <img
+                    src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(f.name + i)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
+                    alt=""
+                    loading="lazy"
+                    className="size-8 rounded-full bg-surface-hover object-cover"
+                  />
                   <span className="flex-1 truncate text-sm font-medium">
                     {f.name}
                     {f.emoji && <span className="ml-1">{f.emoji}</span>}
@@ -1162,35 +1165,72 @@ function SendDialog({
           </div>
         ) : (
           <div className="p-5">
-            {lookup.status === "found" && (
-              <div className="mb-4 flex items-center gap-3 rounded-lg border border-border bg-background p-2.5">
-                {lookup.avatarUrl ? (
-                  <img
-                    src={lookup.avatarUrl}
-                    alt={lookup.name}
-                    className="size-10 rounded-full bg-surface-hover object-cover"
-                  />
-                ) : (
-                  <div className="grid size-10 place-items-center rounded-full bg-surface-hover">
-                    <User className="size-5 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{lookup.displayName}</p>
-                  <p className="truncate text-xs text-muted-foreground">@{lookup.name}</p>
+            {/* Animated gift card preview */}
+            <div className="relative mb-5 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[color:var(--robux-glow)]/25 via-surface to-background p-5 shadow-inner animate-scale-in">
+              <div className="pointer-events-none absolute -right-6 -top-6 size-28 rounded-full bg-[color:var(--robux-glow)]/20 blur-2xl" />
+              <div className="pointer-events-none absolute -bottom-8 -left-6 size-32 rounded-full bg-[color:var(--robux-glow)]/10 blur-2xl" />
+
+              <div className="relative flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--robux-glow)]">
+                  <Gift className="size-3.5" />
+                  Robux Gift
                 </div>
-                <button
-                  onClick={() => setStep("pick")}
-                  className="text-xs font-semibold text-[color:var(--robux-glow)] hover:underline"
-                >
-                  Change
-                </button>
+                {lookup.status === "found" && (
+                  <button
+                    onClick={() => setStep("pick")}
+                    className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    Change recipient
+                  </button>
+                )}
               </div>
-            )}
+
+              {lookup.status === "found" && (
+                <div className="relative mt-3 flex items-center gap-3">
+                  {lookup.avatarUrl ? (
+                    <img
+                      src={lookup.avatarUrl}
+                      alt={lookup.name}
+                      className="size-11 rounded-full bg-surface-hover object-cover ring-2 ring-[color:var(--robux-glow)]/40"
+                    />
+                  ) : (
+                    <div className="grid size-11 place-items-center rounded-full bg-surface-hover ring-2 ring-[color:var(--robux-glow)]/40">
+                      <User className="size-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold">{lookup.displayName}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">@{lookup.name}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="relative mt-4 flex items-end justify-between border-t border-dashed border-border pt-4">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Sending
+                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <RobuxIcon className="size-7" />
+                    <span className="text-3xl font-black tabular-nums tracking-tight">
+                      {Number(amount || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Remaining
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-muted-foreground tabular-nums">
+                    {Math.max(0, balance - Number(amount || 0)).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
 
             <label className="mb-2 block">
               <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Amount
+                Gift amount
               </span>
               <div className="relative">
                 <RobuxIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
@@ -1200,7 +1240,7 @@ function SendDialog({
                   placeholder="0"
                   inputMode="numeric"
                   autoFocus
-                  className="h-11 w-full rounded-lg border border-border bg-background pl-9 pr-20 text-sm outline-none transition-colors focus:border-[color:var(--robux-glow)]"
+                  className="h-12 w-full rounded-lg border border-border bg-background pl-9 pr-20 text-base font-bold tabular-nums outline-none transition-colors focus:border-[color:var(--robux-glow)]"
                 />
                 <button
                   onClick={() => setAmount(String(balance))}
@@ -1209,22 +1249,35 @@ function SendDialog({
                   MAX
                 </button>
               </div>
+              {Number(amount) > balance && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-destructive">
+                  <AlertCircle className="size-3" /> Exceeds your balance
+                </p>
+              )}
             </label>
-            <div className="mb-5 flex flex-wrap gap-2">
-              {[100, 500, 1000, 5000].map((q) => (
-                <button
-                  key={q}
-                  onClick={() => setAmount(String(q))}
-                  className="rounded-full bg-surface-hover px-3 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
-                >
-                  +{q.toLocaleString()}
-                </button>
-              ))}
+            <div className="mb-5 grid grid-cols-4 gap-2">
+              {[100, 500, 1000, 5000].map((q) => {
+                const active = Number(amount) === q;
+                return (
+                  <button
+                    key={q}
+                    onClick={() => setAmount(String(q))}
+                    className={`flex items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-bold transition-all hover:scale-[1.03] ${
+                      active
+                        ? "border-[color:var(--robux-glow)] bg-[color:var(--robux-glow)]/15 text-foreground"
+                        : "border-border bg-surface-hover text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <RobuxIcon className="size-3" />
+                    {q.toLocaleString()}
+                  </button>
+                );
+              })}
             </div>
             <button
               onClick={submit}
               disabled={!canSend}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--robux-glow)] py-3 text-sm font-bold text-background transition-all hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--robux-glow)] py-3 text-sm font-bold text-background shadow-[0_8px_24px_-8px_var(--robux-glow)] transition-all hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               {sending ? (
                 <>
@@ -1233,7 +1286,7 @@ function SendDialog({
                 </>
               ) : (
                 <>
-                  <Send className="size-4" /> Send Robux
+                  <Gift className="size-4" /> Send Gift
                 </>
               )}
             </button>
