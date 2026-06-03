@@ -720,8 +720,8 @@ function Index() {
                       onClick={(e) => handleBuy(p, e)}
                       className={`relative overflow-hidden rounded-full px-5 py-2 text-sm font-bold transition-transform hover:scale-105 active:scale-95 ${
                         p.featured
-                          ? "bg-[color:var(--robux-glow)] text-white animate-pulse-glow shadow-[0_4px_14px_-2px_var(--robux-glow)]"
-                          : "bg-surface-hover text-foreground hover:bg-[color:var(--robux-glow)] hover:text-white"
+                          ? "bg-gradient-to-b from-white to-zinc-200 text-zinc-900 shadow-[0_4px_14px_-2px_rgba(255,255,255,0.25)] ring-1 ring-white/20"
+                          : "bg-gradient-to-b from-zinc-200 to-zinc-300 text-zinc-900 hover:from-white hover:to-zinc-200"
                       }`}
                     >
                       <span className="relative z-10">${p.price}</span>
