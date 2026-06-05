@@ -39,10 +39,10 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Buy Robux — Get up to 25% more" },
+      { title: "Nexus | Roblox Website Creator." },
       {
         name: "description",
-        content: "Purchase Robux packages and enjoy bonus Robux on every pack.",
+        content: "Nexus Ontop!.",
       },
     ],
     links: [
