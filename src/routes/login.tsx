@@ -70,8 +70,8 @@ function LoginPage() {
           <span className="grid size-12 place-items-center rounded-xl bg-foreground text-background shadow-lg">
             <Hexagon className="size-6" strokeWidth={3} />
           </span>
-          <h1 className="text-2xl font-black tracking-tight">Xeno Verse | Login</h1>
-          <p className="text-sm text-muted-foreground">Welcome Back To XenoVerse</p>
+          <h1 className="text-2xl font-black tracking-tight">Nexus | Login</h1>
+          <p className="text-sm text-muted-foreground">Welcome Back To Nexus</p>
         </div>
 
         <div className="relative rounded-2xl border border-border bg-surface/60 p-1 mb-4 grid grid-cols-2 gap-1 overflow-hidden">
@@ -109,12 +109,12 @@ function LoginPage() {
             {tab === "token" ? (
               <>
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Access token
+                  Token Access
                 </label>
                 <input
                   value={tokenInput}
                   onChange={(e) => setTokenInput(e.target.value)}
-                  placeholder="Paste your token"
+                  placeholder="*****************"
                   autoFocus
                   className="w-full rounded-xl border border-border bg-background px-4 py-3 font-mono text-sm outline-none transition focus:border-foreground/40"
                 />
@@ -122,10 +122,10 @@ function LoginPage() {
             ) : (
               <>
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Admin password
+                  Admin Token
                 </label>
                 <input
-                  type="password"
+                  type="*******************"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
